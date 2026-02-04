@@ -3,7 +3,7 @@ import Navbar from './components/Navbar/Navbar.jsx'
 import MovieCard from './components/MovieCard/MovieCard.jsx'
 import Favorites from './pages/Favorites/Favorites.jsx'
 import { Routes, Route } from 'react-router-dom';
-import { fetchMovies } from './api/api.js';
+import { fetchMovies, searchMovies } from './api/api.js';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -17,9 +17,21 @@ function App() {
   const [favorites, setFavorites] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [sortBy, setSortBy] = useState('title');
+  const [isSearching, setIsSearching] = useState(false);
   
-  const handleChange = (e) => {
+  const handleChange = async (e) => {
     setText(e.target.value);
+    if (e.target.value === '') {
+      console.log('Search input cleared, fetching default movies');
+      setIsSearching(false);
+      const movies = await fetchMovies();
+      setMovieData(movies);
+    } else {
+      console.log('Searching for:', e.target.value);  
+      setIsSearching(true);
+      const movieResults = await searchMovies(e.target.value);
+      setMovieData(movieResults);
+    }
   };
 
   const toggleFavorite = (movie) => {
@@ -40,12 +52,12 @@ function App() {
     getMovies();
   }, []); 
 
-  const filteredMovies = movieData
-    .filter(movie => movie.title.toLowerCase().includes(text.toLowerCase()))
-    .sort((a, b) => {
-      if (sortBy === 'year') return b.year - a.year;
-      return a.title.localeCompare(b.title);
-    });
+  const filteredMovies = isSearching 
+    ? (movieData || [])
+    : (movieData || []).slice().sort((a, b) => {
+        if (sortBy === 'year') return b.year - a.year;
+        return a.title.localeCompare(b.title);
+      });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/10">
@@ -60,11 +72,11 @@ function App() {
                   <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-3 pb-1">
                     Discover Amazing Movies
                   </h1>
-                  <p className="text-muted-foreground flex items-center gap-2">
+                  <div className="text-muted-foreground flex items-center gap-2">
                     <Badge variant="secondary">{movieData.length} movies available</Badge>
                     <span>•</span>
                     <Badge variant="outline">{favorites.length} favorites</Badge>
-                  </p>
+                  </div>
                 </div>
               </div>
 
@@ -105,7 +117,7 @@ function App() {
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                 {filteredMovies.map(movie => (
                   <MovieCard 
-                    key={movie.title}
+                    key={movie.id}
                     image={movie.image} 
                     title={movie.title} 
                     year={movie.year}
