@@ -68,7 +68,7 @@ function App() {
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                   <div>
                     <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-3 pb-1">
-                      Discover Amazing Movies
+                      Relax ka lang, nandito lahat ng gusto mong panoorin
                     </h1>
                     <div className="text-muted-foreground flex items-center gap-2">
                       <Badge variant="secondary">
