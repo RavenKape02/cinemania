@@ -13,7 +13,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 function App() {
   const [movieData, setMovieData] = useState([]);
   const [text, setText] = useState("");
-  const [favorites, setFavorites] = useState([]);
+  const [favorites, setFavorites] = useState(() => {
+    const saved = localStorage.getItem("favorites");
+    return saved ? JSON.parse(saved) : [];
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [isSearching, setIsSearching] = useState(false);
 
@@ -39,6 +42,10 @@ function App() {
         : [...prev, movie],
     );
   };
+
+  useEffect(() => {
+    localStorage.setItem("favorites", JSON.stringify(favorites));
+  }, [favorites]);
 
   useEffect(() => {
     const getMovies = async () => {
