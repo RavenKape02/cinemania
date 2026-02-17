@@ -34,8 +34,8 @@ function App() {
 
   const toggleFavorite = (movie) => {
     setFavorites((prev) =>
-      prev.some((fav) => fav.title === movie.title)
-        ? prev.filter((fav) => fav.title !== movie.title)
+      prev.some((fav) => fav.id === movie.id)
+        ? prev.filter((fav) => fav.id !== movie.id)
         : [...prev, movie],
     );
   };
@@ -131,9 +131,7 @@ function App() {
                           ? `https://www.vidking.net/embed/tv/${movie.id}/1/1?nextEpisode=true&episodeSelector=true`
                           : `https://www.vidking.net/embed/movie/${movie.id}`
                       }
-                      isFavorite={favorites.some(
-                        (fav) => fav.title === movie.title,
-                      )}
+                      isFavorite={favorites.some((fav) => fav.id === movie.id)}
                       onToggleFavorite={() => toggleFavorite(movie)}
                     />
                   ))}

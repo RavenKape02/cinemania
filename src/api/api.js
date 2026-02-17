@@ -20,6 +20,7 @@ export const fetchMovies = async () => {
       year: movie.release_date.split("-")[0],
       image: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
       id: movie.id,
+      mediaType: "movie",
       popularity: movie.popularity,
     }));
 
