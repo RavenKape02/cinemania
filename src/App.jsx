@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Navbar from "./components/Navbar/Navbar.jsx";
 import MovieCard from "./components/MovieCard/MovieCard.jsx";
 import Favorites from "./pages/Favorites/Favorites.jsx";
@@ -19,20 +19,30 @@ function App() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isSearching, setIsSearching] = useState(false);
+  const searchTimeoutRef = useRef(null);
 
-  const handleChange = async (e) => {
-    setText(e.target.value);
-    if (e.target.value === "") {
-      console.log("Search input cleared, fetching default movies");
-      setIsSearching(false);
-      const movies = await fetchMovies();
-      setMovieData(movies);
-    } else {
-      console.log("Searching for:", e.target.value);
-      setIsSearching(true);
-      const movieResults = await searchMovies(e.target.value);
-      setMovieData(movieResults);
+  const handleChange = (e) => {
+    const value = e.target.value;
+    setText(value);
+
+    // Clear the previous timeout so only the latest keystroke triggers an API call
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
     }
+
+    searchTimeoutRef.current = setTimeout(async () => {
+      if (value === "") {
+        console.log("Search input cleared, fetching default movies");
+        setIsSearching(false);
+        const movies = await fetchMovies();
+        setMovieData(movies);
+      } else {
+        console.log("Searching for:", value);
+        setIsSearching(true);
+        const movieResults = await searchMovies(value);
+        setMovieData(movieResults);
+      }
+    }, 300);
   };
 
   const toggleFavorite = (movie) => {
@@ -48,13 +58,28 @@ function App() {
   }, [favorites]);
 
   useEffect(() => {
+    let ignore = false;
     const getMovies = async () => {
       setIsLoading(true);
       const movies = await fetchMovies();
-      setMovieData(movies);
-      setIsLoading(false);
+      if (!ignore) {
+        setMovieData(movies);
+        setIsLoading(false);
+      }
     };
     getMovies();
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
+  // Cleanup the search debounce timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
   }, []);
 
   const filteredMovies = (movieData || []).slice().sort((a, b) => {
