@@ -26,7 +26,7 @@ function Navbar() {
             />
             <div className="flex flex-col">
               <span className="text-lg md:text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                TaraNood
+                Watch Party
               </span>
               <span className="text-xs text-muted-foreground hidden sm:block">
                 Discover Movies
