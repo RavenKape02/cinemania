@@ -1,12 +1,16 @@
+import { useState } from "react";
 import MovieCard from "../../components/MovieCard/MovieCard.jsx";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Link } from "react-router-dom";
 
 function Favorites(props) {
+  const [searchText, setSearchText] = useState("");
+
   const filteredFavorites = props.favorites.filter((movie) =>
-    movie.title.toLowerCase().includes(props.searchText.toLowerCase()),
+    movie.title.toLowerCase().includes(searchText.toLowerCase()),
   );
 
   return (
@@ -33,7 +37,7 @@ function Favorites(props) {
                 {props.favorites.length}{" "}
                 {props.favorites.length === 1 ? "favorite" : "favorites"}
               </Badge>
-              {props.searchText && (
+              {searchText && (
                 <>
                   <span>•</span>
                   <Badge variant="outline">
@@ -44,6 +48,30 @@ function Favorites(props) {
             </p>
           </div>
         </div>
+        {props.favorites.length > 0 && (
+          <div className="relative max-w-md">
+            <svg
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+            <Input
+              type="text"
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              placeholder="Search your favorites..."
+              className="pl-10 h-12 text-base"
+            />
+          </div>
+        )}
         <Separator />
       </div>
 
