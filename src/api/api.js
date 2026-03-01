@@ -22,6 +22,7 @@ export const fetchMovies = async () => {
       id: movie.id,
       mediaType: "movie",
       popularity: movie.popularity,
+      vote_average: movie.vote_average.toFixed(2),
     }));
 
     return movies;
@@ -56,6 +57,7 @@ export const searchMovies = async (query) => {
         id: item.id,
         mediaType: item.media_type,
         popularity: item.popularity,
+        vote_average: item.vote_average.toFixed(2),
       }));
     return results;
   } catch (error) {

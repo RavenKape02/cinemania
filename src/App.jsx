@@ -158,6 +158,7 @@ function App() {
                       image={movie.image}
                       title={movie.title}
                       year={movie.year}
+                      rating={movie.vote_average}
                       link={
                         movie.mediaType === "tv"
                           ? `https://www.vidking.net/embed/tv/${movie.id}/1/1?nextEpisode=true&episodeSelector=true`

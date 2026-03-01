@@ -55,6 +55,7 @@ function Favorites(props) {
               image={movie.image}
               title={movie.title}
               year={movie.year}
+              rating={movie.vote_average}
               link={`https://www.vidking.net/embed/movie/${movie.id}`}
               isFavorite={true}
               onToggleFavorite={() => props.toggleFavorite(movie)}

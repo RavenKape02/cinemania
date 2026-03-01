@@ -1,11 +1,6 @@
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card";
 
 function MovieCard(props) {
   return (
@@ -44,43 +39,33 @@ function MovieCard(props) {
         </Button>
 
         <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-          <HoverCard>
-            <HoverCardTrigger asChild>
-              <Button
-                variant="secondary"
-                size="sm"
-                className="w-full backdrop-blur-md"
-                onClick={() => window.open(props.link, "_blank")}
-              >
-                <svg
-                  className="w-4 h-4 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                Quick View
-              </Button>
-            </HoverCardTrigger>
-            <HoverCardContent className="w-80">
-              <div className="space-y-2">
-                <h4 className="text-sm font-semibold">{props.title}</h4>
-                <p className="text-sm text-muted-foreground">
-                  Released in {props.year}
-                </p>
-                <div className="flex gap-2">
-                  <Badge variant="secondary">Action</Badge>
-                  <Badge variant="secondary">Drama</Badge>
-                </div>
-              </div>
-            </HoverCardContent>
-          </HoverCard>
+          <Button
+            variant="secondary"
+            size="sm"
+            className="w-full backdrop-blur-md"
+            onClick={() => window.open(props.link, "_blank")}
+          >
+            <svg
+              className="w-4 h-4 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            Watch Now
+          </Button>
         </div>
       </div>
 
@@ -99,7 +84,9 @@ function MovieCard(props) {
             <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20">
               <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
             </svg>
-            <span className="text-xs font-medium text-foreground">8.5</span>
+            <span className="text-xs font-medium text-foreground">
+              {props.rating}
+            </span>
           </div>
         </div>
       </CardContent>
