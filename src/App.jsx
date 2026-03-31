@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Routes, Route } from "react-router-dom";
 import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/react"
 import Navbar from "./components/Navbar/Navbar.jsx";
 import Home from "./pages/Home/Home.jsx";
 import Favorites from "./pages/Favorites/Favorites.jsx";
@@ -109,6 +110,7 @@ function App() {
       />
 
       <Analytics />
+      <SpeedInsights /> 
     </div>
   );
 }
