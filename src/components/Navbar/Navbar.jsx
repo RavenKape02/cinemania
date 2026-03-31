@@ -80,19 +80,19 @@ function Navbar({ onSearch, searchText }) {
         {/* Search */}
         <div className="flex items-center gap-3">
           <div
-            className={`flex items-center transition-[width,box-shadow,border-color,background-color] duration-300 ease-out ${
+            className={`flex items-center transition-[width,box-shadow,background-color] duration-300 ease-out ${
               searchOpen
-                ? "w-[min(22rem,calc(100vw-6rem))] min-h-[42px] rounded bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_4px_24px_rgba(0,0,0,0.45)] focus-within:border-white/90 focus-within:ring-2 focus-within:ring-white/20"
-                : "h-10 w-10 shrink-0 justify-center rounded-md border border-transparent"
+                ? "w-[min(22rem,calc(100vw-6rem))] min-h-[44px] rounded-full bg-neutral-950/85 pl-1 pr-1 shadow-[0_12px_40px_-8px_rgba(0,0,0,0.85),inset_0_1px_0_0_rgba(255,255,255,0.06)] backdrop-blur-2xl backdrop-saturate-150 focus-within:bg-neutral-900/90 focus-within:shadow-[0_0_36px_-6px_rgba(229,9,20,0.28),0_16px_48px_-10px_rgba(0,0,0,0.92),inset_0_1px_0_0_rgba(255,255,255,0.09)]"
+                : "h-10 w-10 shrink-0 justify-center rounded-full"
             }`}
           >
             <button
               type="button"
               onClick={handleSearchToggle}
-              className={`flex shrink-0 items-center justify-center text-white transition-colors hover:bg-white/10 hover:text-white ${
+              className={`flex shrink-0 items-center justify-center text-white transition-colors hover:bg-white/[0.08] hover:text-white ${
                 searchOpen
-                  ? "ml-1 h-9 w-9 rounded-sm"
-                  : "h-10 w-10 rounded-md"
+                  ? "h-9 w-9 rounded-full text-netflix-light-gray hover:text-white"
+                  : "h-10 w-10 rounded-full"
               }`}
               aria-label={searchOpen ? "Close search" : "Open search"}
             >
