@@ -1,28 +1,36 @@
-# Cinemania
+# WatchParty
 
-A movie search engine that fetches trending movies from The Movie Database API with the ability to save your favorite picks.
+**WatchParty** is a Netflix-inspired movie discovery web app built for fast browsing, clean visuals, and effortless watchlist management.
 
-## Features
+Live site: [https://taranood.live](https://taranood.live)
 
-- Browse trending movies from TMDB
-- Real-time search functionality
-- Add/remove movies to your favorites list
-- Persistent favorites page
+## What WatchParty Does
+
+- Surfaces trending and popular movies/TV shows from TMDB
+- Provides instant search with debounced queries
+- Lets users save and manage favorites in **My List**
+- Displays rich title previews through a modern details modal
+- Offers responsive navigation with a mobile drawer experience
+
+## Product Experience
+
+WatchParty focuses on a cinematic UI with compact information density:
+
+- Dark-first visual design inspired by modern streaming platforms
+- Hero section with highlighted featured content
+- Horizontal content rows for quick browsing by category
+- Fast interactions for search, opening details, and favoriting titles
 
 ## Tech Stack
 
+- Next.js
 - React
-- Vite
-- React Router
-- The Movie Database API
+- React Router (client-side SPA flow)
+- Tailwind CSS + Radix UI primitives
+- TMDB API
 
-## Setup
+## Brand
 
-1. Clone the repository
-2. Install dependencies: `npm install`
-3. Create a `.env.local` file and add your TMDB API key:
-   ```
-   MOVIEDB_API_KEY=your_api_key_here
-   ```
-4. Run the development server: `npm run dev`
+- Product Name: **WatchParty**
+- Primary Domain: **taranood.live**
 
