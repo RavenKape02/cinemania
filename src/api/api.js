@@ -1,5 +1,6 @@
-const API_URL =
-  "https://api.themoviedb.org/3/discover/movie?include_adult=false&include_video=false&language=en-US&page=1&sort_by=popularity.desc";
+const BASE_URL = "https://api.themoviedb.org/3";
+const IMG_BASE = "https://image.tmdb.org/t/p";
+
 const API_OPTIONS = {
   method: "GET",
   headers: {
@@ -8,60 +9,166 @@ const API_OPTIONS = {
   },
 };
 
-export const fetchMovies = async () => {
+function mapMovie(item, forceMediaType) {
+  const mediaType = forceMediaType || item.media_type || "movie";
+  const isTV = mediaType === "tv";
+  return {
+    id: item.id,
+    title: isTV ? (item.name || item.title) : (item.title || item.name),
+    year: isTV
+      ? item.first_air_date?.split("-")[0]
+      : item.release_date?.split("-")[0],
+    image: item.poster_path
+      ? `${IMG_BASE}/w500${item.poster_path}`
+      : null,
+    backdrop: item.backdrop_path
+      ? `${IMG_BASE}/original${item.backdrop_path}`
+      : null,
+    backdropMd: item.backdrop_path
+      ? `${IMG_BASE}/w780${item.backdrop_path}`
+      : null,
+    overview: item.overview || "",
+    mediaType,
+    popularity: item.popularity,
+    voteAverage: item.vote_average,
+    genreIds: item.genre_ids || [],
+  };
+}
+
+async function fetchFromAPI(url) {
   try {
-    const response = await fetch(API_URL, API_OPTIONS);
+    const response = await fetch(url, API_OPTIONS);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const data = await response.json();
-    console.log("Full API Response:", data);
-
-    // Extract and transform the movie data
-    const movies = data.results.map((movie) => ({
-      title: movie.title,
-      year: movie.release_date.split("-")[0],
-      image: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
-      id: movie.id,
-      mediaType: "movie",
-      popularity: movie.popularity,
-      vote_average: movie.vote_average.toFixed(2),
-    }));
-
-    return movies;
+    return data;
   } catch (error) {
-    console.error("Error fetching movies:", error);
+    console.error("API Error:", error);
     return null;
   }
-};
+}
 
-export const searchMovies = async (query) => {
-  const SEARCH_API_URL = `https://api.themoviedb.org/3/search/multi?query=${encodeURIComponent(query)}&include_adult=false&language=en-US&page=1`;
-  try {
-    const response = await fetch(SEARCH_API_URL, API_OPTIONS);
-    const data = await response.json();
-    console.log("Full Search API Response:", data);
-    // Extract and transform the movie and TV show data
-    const results = data.results
-      .filter(
-        (item) =>
-          (item.media_type === "movie" || item.media_type === "tv") &&
-          item.media_type !== "person",
-      )
-      .map((item) => ({
-        title: item.media_type === "movie" ? item.title : item.name,
-        year:
-          item.media_type === "movie"
-            ? item.release_date?.split("-")[0]
-            : item.first_air_date?.split("-")[0],
-        image: item.poster_path
-          ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
-          : null,
-        id: item.id,
-        mediaType: item.media_type,
-        popularity: item.popularity,
-        vote_average: item.vote_average.toFixed(2),
-      }));
-    return results;
-  } catch (error) {
-    console.error("Error searching movies and TV shows:", error);
-    return null;
-  }
+export async function fetchTrending() {
+  const data = await fetchFromAPI(`${BASE_URL}/trending/all/week?language=en-US`);
+  if (!data?.results) return [];
+  return data.results
+    .filter((item) => item.media_type !== "person")
+    .map((item) => mapMovie(item));
+}
+
+export async function fetchPopularMovies() {
+  const data = await fetchFromAPI(
+    `${BASE_URL}/movie/popular?language=en-US&page=1`
+  );
+  if (!data?.results) return [];
+  return data.results.map((item) => mapMovie(item, "movie"));
+}
+
+export async function fetchTopRated() {
+  const data = await fetchFromAPI(
+    `${BASE_URL}/movie/top_rated?language=en-US&page=1`
+  );
+  if (!data?.results) return [];
+  return data.results.map((item) => mapMovie(item, "movie"));
+}
+
+export async function fetchNowPlaying() {
+  const data = await fetchFromAPI(
+    `${BASE_URL}/movie/now_playing?language=en-US&page=1`
+  );
+  if (!data?.results) return [];
+  return data.results.map((item) => mapMovie(item, "movie"));
+}
+
+export async function fetchUpcoming() {
+  const data = await fetchFromAPI(
+    `${BASE_URL}/movie/upcoming?language=en-US&page=1`
+  );
+  if (!data?.results) return [];
+  return data.results.map((item) => mapMovie(item, "movie"));
+}
+
+export async function fetchPopularTV() {
+  const data = await fetchFromAPI(
+    `${BASE_URL}/tv/popular?language=en-US&page=1`
+  );
+  if (!data?.results) return [];
+  return data.results.map((item) => mapMovie(item, "tv"));
+}
+
+export async function fetchByGenre(genreId, mediaType = "movie") {
+  const data = await fetchFromAPI(
+    `${BASE_URL}/discover/${mediaType}?with_genres=${genreId}&language=en-US&page=1&sort_by=popularity.desc`
+  );
+  if (!data?.results) return [];
+  return data.results.map((item) => mapMovie(item, mediaType));
+}
+
+export async function searchMovies(query) {
+  const data = await fetchFromAPI(
+    `${BASE_URL}/search/multi?query=${encodeURIComponent(query)}&include_adult=false&language=en-US&page=1`
+  );
+  if (!data?.results) return [];
+  return data.results
+    .filter((item) => item.media_type === "movie" || item.media_type === "tv")
+    .map((item) => mapMovie(item));
+}
+
+export async function fetchMovieDetails(id, mediaType = "movie") {
+  const data = await fetchFromAPI(
+    `${BASE_URL}/${mediaType}/${id}?append_to_response=credits,similar,videos&language=en-US`
+  );
+  if (!data) return null;
+
+  const cast = data.credits?.cast?.slice(0, 15).map((c) => c.name) || [];
+  const director =
+    data.credits?.crew?.find((c) => c.job === "Director")?.name || "";
+  const genres = data.genres?.map((g) => g.name) || [];
+  const trailer = data.videos?.results?.find(
+    (v) => v.type === "Trailer" && v.site === "YouTube"
+  );
+  const similar = (data.similar?.results || [])
+    .slice(0, 12)
+    .map((item) => mapMovie(item, mediaType));
+
+  return {
+    id: data.id,
+    title: mediaType === "tv" ? data.name : data.title,
+    year: mediaType === "tv"
+      ? data.first_air_date?.split("-")[0]
+      : data.release_date?.split("-")[0],
+    image: data.poster_path ? `${IMG_BASE}/w500${data.poster_path}` : null,
+    backdrop: data.backdrop_path ? `${IMG_BASE}/original${data.backdrop_path}` : null,
+    overview: data.overview || "",
+    mediaType,
+    voteAverage: data.vote_average,
+    runtime: mediaType === "tv" ? data.episode_run_time?.[0] : data.runtime,
+    numberOfSeasons: data.number_of_seasons,
+    genres,
+    cast,
+    director,
+    similar,
+    trailerKey: trailer?.key || null,
+    tagline: data.tagline || "",
+  };
+}
+
+export const GENRE_MAP = {
+  28: "Action",
+  12: "Adventure",
+  16: "Animation",
+  35: "Comedy",
+  80: "Crime",
+  99: "Documentary",
+  18: "Drama",
+  10751: "Family",
+  14: "Fantasy",
+  36: "History",
+  27: "Horror",
+  10402: "Music",
+  9648: "Mystery",
+  10749: "Romance",
+  878: "Sci-Fi",
+  53: "Thriller",
+  10752: "War",
+  37: "Western",
 };

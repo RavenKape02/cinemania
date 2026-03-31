@@ -1,156 +1,156 @@
-import { Link, useLocation } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { Search, X, Heart, Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { useState } from "react";
 
-function Navbar() {
+function Navbar({ onSearch, searchText }) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const [scrolled, setScrolled] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const searchInputRef = useRef(null);
   const isActive = (path) => location.pathname === path;
-  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 10);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    if (searchOpen && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [searchOpen]);
+
+  const handleSearchToggle = () => {
+    if (searchOpen && searchText) {
+      onSearch("");
+    }
+    setSearchOpen(!searchOpen);
+  };
+
+  const handleSearchChange = (e) => {
+    onSearch(e.target.value);
+    if (location.pathname !== "/") {
+      navigate("/");
+    }
+  };
+
+  const navLinks = [
+    { path: "/", label: "Home" },
+    { path: "/favorites", label: "My List" },
+  ];
 
   return (
-    <nav className="sticky top-0 z-50 backdrop-blur-xl bg-background/80 border-b border-border/40">
-      <div className="container mx-auto px-4 py-3 md:px-6 md:py-4">
-        <div className="flex items-center justify-between">
-          <Link
-            to="/"
-            className="flex items-center space-x-2 md:space-x-3 group"
+    <nav
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+        scrolled
+          ? "bg-netflix-black"
+          : "bg-gradient-to-b from-black/80 via-black/40 to-transparent"
+      }`}
+    >
+      <div className="flex items-center px-4 md:px-12 h-16 md:h-[68px]">
+        <Link to="/" className="flex-shrink-0 mr-6 md:mr-10">
+          <span className="text-netflix-red font-black text-2xl md:text-3xl tracking-tighter">
+            WATCHPARTY
+          </span>
+        </Link>
+
+        {/* Desktop nav links */}
+        <div className="hidden md:flex items-center gap-5">
+          {navLinks.map((link) => (
+            <Link
+              key={link.path}
+              to={link.path}
+              className={`text-sm transition-colors hover:text-white/80 ${
+                isActive(link.path)
+                  ? "text-white font-semibold"
+                  : "text-netflix-light-gray"
+              }`}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </div>
+
+        <div className="flex-1" />
+
+        {/* Search */}
+        <div className="flex items-center gap-3">
+          <div
+            className={`flex items-center transition-[width,box-shadow,border-color,background-color] duration-300 ease-out ${
+              searchOpen
+                ? "w-[min(22rem,calc(100vw-6rem))] min-h-[42px] rounded bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_4px_24px_rgba(0,0,0,0.45)] focus-within:border-white/90 focus-within:ring-2 focus-within:ring-white/20"
+                : "h-10 w-10 shrink-0 justify-center rounded-md border border-transparent"
+            }`}
           >
-            <img
-              src="/movieicon.gif"
-              alt="TaraNood Logo"
-              className="w-10 h-10 md:w-12 md:h-12 rounded-xl object-cover transform group-hover:scale-110 transition-transform"
-            />
-            <div className="flex flex-col">
-              <span className="text-lg md:text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Watch Party
-              </span>
-              <span className="text-xs text-muted-foreground hidden sm:block">
-                Discover Movies
-              </span>
-            </div>
-          </Link>
-
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-2">
-            <ThemeToggle />
-            <Link to="/">
-              <Button
-                variant={isActive("/") ? "default" : "ghost"}
-                size="lg"
-                className="gap-2"
-              >
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-                  />
-                </svg>
-                Home
-              </Button>
-            </Link>
-
-            <Link to="/favorites">
-              <Button
-                variant={isActive("/favorites") ? "default" : "ghost"}
-                size="lg"
-                className="gap-2 relative"
-              >
-                <svg
-                  className="w-4 h-4"
-                  fill={isActive("/favorites") ? "currentColor" : "none"}
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                  />
-                </svg>
-                Favorites
-              </Button>
-            </Link>
+            <button
+              type="button"
+              onClick={handleSearchToggle}
+              className={`flex shrink-0 items-center justify-center text-white transition-colors hover:bg-white/10 hover:text-white ${
+                searchOpen
+                  ? "ml-1 h-9 w-9 rounded-sm"
+                  : "h-10 w-10 rounded-md"
+              }`}
+              aria-label={searchOpen ? "Close search" : "Open search"}
+            >
+              {searchOpen ? <X size={18} strokeWidth={2.25} /> : <Search size={20} />}
+            </button>
+            {searchOpen && (
+              <input
+                ref={searchInputRef}
+                type="search"
+                value={searchText}
+                onChange={handleSearchChange}
+                placeholder="Titles, people, genres"
+                autoComplete="off"
+                enterKeyHint="search"
+                className="min-w-0 flex-1 bg-transparent py-2 pr-3 text-[15px] leading-snug text-white placeholder:text-white/45 placeholder:text-[15px] caret-white outline-none selection:bg-netflix-red/40"
+              />
+            )}
           </div>
 
-          {/* Mobile Navigation */}
-          <div className="flex md:hidden items-center gap-2">
-            <ThemeToggle />
-            <Sheet open={open} onOpenChange={setOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 6h16M4 12h16M4 18h16"
-                    />
-                  </svg>
-                  <span className="sr-only">Toggle menu</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-64">
-                <div className="flex flex-col gap-4 mt-8">
-                  <Link to="/" onClick={() => setOpen(false)}>
-                    <Button
-                      variant={isActive("/") ? "default" : "ghost"}
-                      className="w-full justify-start gap-3 text-base h-12"
-                    >
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-                        />
-                      </svg>
-                      Home
-                    </Button>
-                  </Link>
+          {/* Favorites shortcut (desktop) */}
+          <Link
+            to="/favorites"
+            className="hidden md:flex items-center text-white hover:text-white/80 transition-colors"
+            aria-label="My List"
+          >
+            <Heart size={20} />
+          </Link>
 
-                  <Link to="/favorites" onClick={() => setOpen(false)}>
-                    <Button
-                      variant={isActive("/favorites") ? "default" : "ghost"}
-                      className="w-full justify-start gap-3 text-base h-12"
+          {/* Mobile hamburger */}
+          <div className="md:hidden">
+            <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+              <SheetTrigger asChild>
+                <button className="p-1.5 text-white" aria-label="Menu">
+                  <Menu size={22} />
+                </button>
+              </SheetTrigger>
+              <SheetContent
+                side="right"
+                className="w-64 bg-netflix-black border-l border-white/10 p-0"
+              >
+                <div className="flex flex-col pt-12 px-6">
+                  <span className="text-netflix-red font-black text-xl tracking-tighter mb-8">
+                    WATCHPARTY
+                  </span>
+                  {navLinks.map((link) => (
+                    <Link
+                      key={link.path}
+                      to={link.path}
+                      onClick={() => setMobileOpen(false)}
+                      className={`py-3 text-base border-b border-white/5 transition-colors ${
+                        isActive(link.path)
+                          ? "text-white font-semibold"
+                          : "text-netflix-light-gray hover:text-white"
+                      }`}
                     >
-                      <svg
-                        className="w-5 h-5"
-                        fill={isActive("/favorites") ? "currentColor" : "none"}
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                        />
-                      </svg>
-                      Favorites
-                    </Button>
-                  </Link>
+                      {link.label}
+                    </Link>
+                  ))}
                 </div>
               </SheetContent>
             </Sheet>

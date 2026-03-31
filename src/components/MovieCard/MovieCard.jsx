@@ -1,96 +1,130 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Play, ChevronDown, Heart } from "lucide-react";
+import { GENRE_MAP } from "@/api/api";
 
-function MovieCard(props) {
+function MovieCard({ movie, isFavorite, onToggleFavorite, onClick }) {
+  if (!movie || !movie.image) return null;
+
+  const genreNames = (movie.genreIds || [])
+    .slice(0, 2)
+    .map((id) => GENRE_MAP[id])
+    .filter(Boolean);
+
+  const watchUrl =
+    movie.mediaType === "tv"
+      ? `https://www.vidking.net/embed/tv/${movie.id}/1/1?nextEpisode=true&episodeSelector=true`
+      : `https://www.vidking.net/embed/movie/${movie.id}`;
+
   return (
-    <Card className="group overflow-hidden border-border/50 hover:border-primary/50 transition-all duration-300 hover:shadow-xl hover:shadow-primary/10 hover:-translate-y-1">
-      <div className="relative overflow-hidden aspect-[2/3]">
+    <div className="group/card relative flex-shrink-0 w-[140px] sm:w-[170px] md:w-[200px] lg:w-[230px] cursor-pointer">
+      {/* Poster image */}
+      <div
+        className="relative rounded overflow-hidden aspect-[2/3] bg-netflix-dark"
+        onClick={() => onClick?.(movie)}
+      >
         <img
-          src={props.image}
-          alt={props.title}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          src={movie.image}
+          alt={movie.title}
+          className="w-full h-full object-cover transition-transform duration-300 group-hover/card:scale-105"
+          loading="lazy"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-        <Button
-          size="icon"
-          variant="secondary"
-          className={`absolute top-3 right-3 rounded-full shadow-lg backdrop-blur-sm transition-all duration-300 ${
-            props.isFavorite
-              ? "bg-red-500 hover:bg-red-600 text-white scale-110"
-              : ""
-          }`}
-          onClick={props.onToggleFavorite}
-        >
-          <svg
-            className="w-5 h-5"
-            fill={props.isFavorite ? "currentColor" : "none"}
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-            />
-          </svg>
-        </Button>
-
-        <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-          <Button
-            variant="secondary"
-            size="sm"
-            className="w-full backdrop-blur-md"
-            onClick={() => window.open(props.link, "_blank")}
-          >
-            <svg
-              className="w-4 h-4 mr-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
-              />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            Watch Now
-          </Button>
-        </div>
+        <div className="absolute inset-0 bg-black/0 group-hover/card:bg-black/20 transition-colors" />
       </div>
 
-      <CardContent className="p-4">
-        <h3 className="font-semibold text-base line-clamp-2 mb-2 group-hover:text-primary transition-colors">
-          {props.title}
-        </h3>
-        <div className="flex items-center justify-between">
-          <Badge variant="outline" className="gap-1">
-            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M10 2a8 8 0 100 16 8 8 0 000-16zm1 11H9v-2h2v2zm0-4H9V5h2v4z" />
-            </svg>
-            {props.year}
-          </Badge>
-          <div className="flex items-center gap-1 text-yellow-500">
-            <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20">
-              <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
-            </svg>
-            <span className="text-xs font-medium text-foreground">
-              {props.rating}
-            </span>
+      {/* Hover expanded card */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[280px] md:w-[320px] opacity-0 invisible group-hover/card:opacity-100 group-hover/card:visible group-hover/card:scale-100 scale-90 transition-all duration-200 z-30 pointer-events-none group-hover/card:pointer-events-auto origin-top">
+        <div className="rounded-md overflow-hidden shadow-2xl shadow-black/80 bg-netflix-dark">
+          {/* Backdrop preview */}
+          <div className="relative aspect-video overflow-hidden">
+            <img
+              src={movie.backdropMd || movie.image}
+              alt={movie.title}
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-netflix-dark via-transparent to-transparent" />
+            <div className="absolute bottom-3 left-3 right-3">
+              <h3 className="text-white font-bold text-sm truncate text-shadow">
+                {movie.title}
+              </h3>
+            </div>
+          </div>
+
+          {/* Action buttons */}
+          <div className="p-3 space-y-2.5">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.open(watchUrl, "_blank");
+                }}
+                className="w-8 h-8 rounded-full bg-white flex items-center justify-center hover:bg-white/80 transition-colors"
+                aria-label="Play"
+              >
+                <Play size={16} fill="black" className="text-black ml-0.5" />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleFavorite?.(movie);
+                }}
+                className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-colors ${
+                  isFavorite
+                    ? "border-white bg-white/20 text-white"
+                    : "border-white/40 text-white/60 hover:border-white hover:text-white"
+                }`}
+                aria-label={isFavorite ? "Remove from list" : "Add to list"}
+              >
+                <Heart
+                  size={14}
+                  fill={isFavorite ? "currentColor" : "none"}
+                />
+              </button>
+              <div className="flex-1" />
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onClick?.(movie);
+                }}
+                className="w-8 h-8 rounded-full border-2 border-white/40 text-white/60 flex items-center justify-center hover:border-white hover:text-white transition-colors"
+                aria-label="More info"
+              >
+                <ChevronDown size={16} />
+              </button>
+            </div>
+
+            {/* Meta */}
+            <div className="flex items-center gap-2 text-xs">
+              {movie.voteAverage > 0 && (
+                <span className="text-green-400 font-bold">
+                  {Math.round(movie.voteAverage * 10)}% Match
+                </span>
+              )}
+              {movie.year && (
+                <span className="text-netflix-light-gray">{movie.year}</span>
+              )}
+              {movie.mediaType === "tv" && (
+                <span className="border border-white/30 text-white/70 text-[10px] px-1 rounded">
+                  Series
+                </span>
+              )}
+            </div>
+
+            {/* Genres */}
+            {genreNames.length > 0 && (
+              <div className="flex items-center gap-1 text-xs text-white/80">
+                {genreNames.map((name, i) => (
+                  <span key={name}>
+                    {name}
+                    {i < genreNames.length - 1 && (
+                      <span className="text-white/30 mx-1">·</span>
+                    )}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 

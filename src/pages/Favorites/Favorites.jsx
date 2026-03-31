@@ -1,145 +1,54 @@
-import { useState } from "react";
-import MovieCard from "../../components/MovieCard/MovieCard.jsx";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
+import { Heart } from "lucide-react";
 import { Link } from "react-router-dom";
+import MovieCard from "@/components/MovieCard/MovieCard";
 
-function Favorites(props) {
-  const [searchText, setSearchText] = useState("");
-
-  const filteredFavorites = props.favorites.filter((movie) =>
-    movie.title.toLowerCase().includes(searchText.toLowerCase()),
-  );
-
+function Favorites({ favorites, toggleFavorite, onMovieClick }) {
   return (
-    <main className="container mx-auto px-6 py-8">
-      <div className="mb-8 space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-red-500 via-pink-500 to-purple-600 bg-clip-text text-transparent mb-2">
-              Your Favorites
-            </h1>
-            <p className="text-muted-foreground flex items-center gap-2">
-              <Badge variant="secondary" className="gap-1">
-                <svg
-                  className="w-3 h-3"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                {props.favorites.length}{" "}
-                {props.favorites.length === 1 ? "favorite" : "favorites"}
-              </Badge>
-              {searchText && (
-                <>
-                  <span>•</span>
-                  <Badge variant="outline">
-                    {filteredFavorites.length} matching search
-                  </Badge>
-                </>
-              )}
-            </p>
-          </div>
-        </div>
-        {props.favorites.length > 0 && (
-          <div className="relative max-w-md">
-            <svg
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-            <Input
-              type="text"
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              placeholder="Search your favorites..."
-              className="pl-10 h-12 text-base"
-            />
-          </div>
+    <div className="min-h-screen bg-netflix-black pt-20 md:pt-24 px-4 md:px-12">
+      <div className="mb-8">
+        <h1 className="text-2xl md:text-4xl font-bold text-white mb-2">
+          My List
+        </h1>
+        {favorites.length > 0 && (
+          <p className="text-netflix-light-gray text-sm">
+            {favorites.length} title{favorites.length !== 1 ? "s" : ""}
+          </p>
         )}
-        <Separator />
       </div>
 
-      {filteredFavorites.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-          {filteredFavorites.map((movie) => (
+      {favorites.length > 0 ? (
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2 md:gap-3 pb-12">
+          {favorites.map((movie) => (
             <MovieCard
               key={movie.id}
-              image={movie.image}
-              title={movie.title}
-              year={movie.year}
-              rating={movie.vote_average}
-              link={`https://www.vidking.net/embed/movie/${movie.id}`}
+              movie={movie}
               isFavorite={true}
-              onToggleFavorite={() => props.toggleFavorite(movie)}
+              onToggleFavorite={toggleFavorite}
+              onClick={onMovieClick}
             />
           ))}
         </div>
       ) : (
-        <div className="text-center py-20">
-          <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-red-500/10 via-pink-500/10 to-purple-500/10 mb-6">
-            <svg
-              className="w-12 h-12 text-muted-foreground"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-              />
-            </svg>
+        <div className="flex flex-col items-center justify-center py-32">
+          <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-6">
+            <Heart size={36} className="text-netflix-gray" />
           </div>
-          <h3 className="text-2xl font-semibold mb-2">
-            {props.favorites.length === 0
-              ? "No favorites yet"
-              : "No matching favorites"}
-          </h3>
-          <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-            {props.favorites.length === 0
-              ? "Start building your collection by clicking the heart icon on any movie"
-              : "Try adjusting your search to find your favorite movies"}
+          <h2 className="text-xl font-semibold text-white mb-2">
+            Your list is empty
+          </h2>
+          <p className="text-netflix-gray text-sm text-center max-w-sm mb-8">
+            Add movies and shows to your list so you can easily find them later.
           </p>
-          {props.favorites.length === 0 && (
-            <Link to="/">
-              <Button size="lg" className="gap-2">
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-                Discover Movies
-              </Button>
-            </Link>
-          )}
+          <Link
+            to="/"
+            className="bg-white text-black font-bold px-8 py-3 rounded text-sm hover:bg-white/80 transition-colors"
+          >
+            Browse Content
+          </Link>
         </div>
       )}
-    </main>
+    </div>
   );
 }
+
 export default Favorites;

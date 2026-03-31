@@ -1,6 +1,5 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  darkMode: ["class"],
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
@@ -46,6 +45,16 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        netflix: {
+          red: '#E50914',
+          black: '#141414',
+          dark: '#181818',
+          gray: '#808080',
+          'light-gray': '#b3b3b3',
+        }
+      },
+      transitionDuration: {
+        '400': '400ms',
       }
     }
   },

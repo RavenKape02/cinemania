@@ -1,79 +1,62 @@
-import { useState, useEffect, useRef } from "react";
-import Navbar from "./components/Navbar/Navbar.jsx";
-import MovieCard from "./components/MovieCard/MovieCard.jsx";
-import Favorites from "./pages/Favorites/Favorites.jsx";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Routes, Route } from "react-router-dom";
-import { fetchMovies, searchMovies } from "./api/api.js";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
+import Navbar from "./components/Navbar/Navbar.jsx";
+import Home from "./pages/Home/Home.jsx";
+import Favorites from "./pages/Favorites/Favorites.jsx";
+import MovieModal from "./components/MovieModal/MovieModal.jsx";
+import { searchMovies } from "./api/api.js";
 
 function App() {
-  const [movieData, setMovieData] = useState([]);
-  const [text, setText] = useState("");
+  const [searchText, setSearchText] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
   const [favorites, setFavorites] = useState(() => {
     const saved = localStorage.getItem("favorites");
     return saved ? JSON.parse(saved) : [];
   });
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSearching, setIsSearching] = useState(false);
+  const [modalMovie, setModalMovie] = useState(null);
   const searchTimeoutRef = useRef(null);
-
-  const handleChange = (e) => {
-    const value = e.target.value;
-    setText(value);
-
-    // Clear the previous timeout so only the latest keystroke triggers an API call
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-
-    searchTimeoutRef.current = setTimeout(async () => {
-      if (value === "") {
-        console.log("Search input cleared, fetching default movies");
-        setIsSearching(false);
-        const movies = await fetchMovies();
-        setMovieData(movies);
-      } else {
-        console.log("Searching for:", value);
-        setIsSearching(true);
-        const movieResults = await searchMovies(value);
-        setMovieData(movieResults);
-      }
-    }, 300);
-  };
-
-  const toggleFavorite = (movie) => {
-    setFavorites((prev) =>
-      prev.some((fav) => fav.id === movie.id)
-        ? prev.filter((fav) => fav.id !== movie.id)
-        : [...prev, movie],
-    );
-  };
 
   useEffect(() => {
     localStorage.setItem("favorites", JSON.stringify(favorites));
   }, [favorites]);
 
-  useEffect(() => {
-    let ignore = false;
-    const getMovies = async () => {
-      setIsLoading(true);
-      const movies = await fetchMovies();
-      if (!ignore) {
-        setMovieData(movies);
-        setIsLoading(false);
-      }
-    };
-    getMovies();
-    return () => {
-      ignore = true;
-    };
+  const toggleFavorite = useCallback((movie) => {
+    setFavorites((prev) =>
+      prev.some((fav) => fav.id === movie.id)
+        ? prev.filter((fav) => fav.id !== movie.id)
+        : [...prev, movie]
+    );
   }, []);
 
-  // Cleanup the search debounce timeout on unmount
+  const handleSearch = useCallback((value) => {
+    setSearchText(value);
+
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    if (!value.trim()) {
+      setIsSearching(false);
+      setSearchResults([]);
+      return;
+    }
+
+    searchTimeoutRef.current = setTimeout(async () => {
+      setIsSearching(true);
+      const results = await searchMovies(value);
+      setSearchResults(results || []);
+    }, 300);
+  }, []);
+
+  const handleMovieClick = useCallback((movie) => {
+    setModalMovie(movie);
+  }, []);
+
+  const handleCloseModal = useCallback(() => {
+    setModalMovie(null);
+  }, []);
+
   useEffect(() => {
     return () => {
       if (searchTimeoutRef.current) {
@@ -82,128 +65,47 @@ function App() {
     };
   }, []);
 
-  const filteredMovies = (movieData || []).slice().sort((a, b) => {
-    // Sort by popularity (descending)
-    return (b.popularity || 0) - (a.popularity || 0);
-  });
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/10">
-      <Navbar />
+    <div className="min-h-screen bg-netflix-black">
+      <Navbar onSearch={handleSearch} searchText={searchText} />
 
       <Routes>
         <Route
           path="/"
           element={
-            <main className="container mx-auto px-6 py-8">
-              <div className="mb-8 space-y-6">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                  <div>
-                    <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-3 pb-1">
-                      Relax and take a popcorn, we got you covered!
-                    </h1>
-                    <div className="text-muted-foreground flex items-center gap-2">
-                      <Badge variant="secondary">
-                        {movieData.length} movies available
-                      </Badge>
-                      <span>•</span>
-                      <Badge variant="outline">
-                        {favorites.length} favorites
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex flex-col md:flex-row gap-4">
-                  <div className="relative flex-1">
-                    <svg
-                      className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                      />
-                    </svg>
-                    <Input
-                      type="text"
-                      value={text}
-                      onChange={handleChange}
-                      placeholder="Search for movies, actors, directors..."
-                      className="pl-10 h-12 text-base"
-                    />
-                  </div>
-                </div>
-
-                <Separator />
-              </div>
-
-              {isLoading ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                  {[...Array(10)].map((_, i) => (
-                    <div key={i} className="space-y-3">
-                      <Skeleton className="h-[450px] w-full rounded-lg" />
-                    </div>
-                  ))}
-                </div>
-              ) : filteredMovies.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                  {filteredMovies.map((movie) => (
-                    <MovieCard
-                      key={movie.id}
-                      image={movie.image}
-                      title={movie.title}
-                      year={movie.year}
-                      rating={movie.vote_average}
-                      link={
-                        movie.mediaType === "tv"
-                          ? `https://www.vidking.net/embed/tv/${movie.id}/1/1?nextEpisode=true&episodeSelector=true`
-                          : `https://www.vidking.net/embed/movie/${movie.id}`
-                      }
-                      isFavorite={favorites.some((fav) => fav.id === movie.id)}
-                      onToggleFavorite={() => toggleFavorite(movie)}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-20">
-                  <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-muted mb-4">
-                    <svg
-                      className="w-10 h-10 text-muted-foreground"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                      />
-                    </svg>
-                  </div>
-                  <h3 className="text-xl font-semibold mb-2">
-                    No movies found
-                  </h3>
-                  <p className="text-muted-foreground">
-                    Try adjusting your search
-                  </p>
-                </div>
-              )}
-            </main>
+            <Home
+              favorites={favorites}
+              onToggleFavorite={toggleFavorite}
+              onMovieClick={handleMovieClick}
+              searchText={searchText}
+              searchResults={searchResults}
+              isSearching={isSearching}
+            />
           }
         />
         <Route
           path="/favorites"
           element={
-            <Favorites favorites={favorites} toggleFavorite={toggleFavorite} />
+            <Favorites
+              favorites={favorites}
+              toggleFavorite={toggleFavorite}
+              onMovieClick={handleMovieClick}
+            />
           }
         />
       </Routes>
+
+      <MovieModal
+        movie={modalMovie}
+        isOpen={!!modalMovie}
+        onClose={handleCloseModal}
+        isFavorite={
+          modalMovie
+            ? favorites.some((fav) => fav.id === modalMovie.id)
+            : false
+        }
+        onToggleFavorite={toggleFavorite}
+      />
     </div>
   );
 }
