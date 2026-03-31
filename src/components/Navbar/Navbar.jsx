@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback, memo } from "react";
 import { Search, X, Heart, Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
@@ -10,12 +10,22 @@ function Navbar({ onSearch, searchText }) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const searchInputRef = useRef(null);
+  const rafRef = useRef(null);
   const isActive = (path) => location.pathname === path;
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 10);
+    const handleScroll = () => {
+      if (rafRef.current) return;
+      rafRef.current = requestAnimationFrame(() => {
+        rafRef.current = null;
+        setScrolled(window.scrollY > 10);
+      });
+    };
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
   }, []);
 
   useEffect(() => {
@@ -24,19 +34,22 @@ function Navbar({ onSearch, searchText }) {
     }
   }, [searchOpen]);
 
-  const handleSearchToggle = () => {
+  const handleSearchToggle = useCallback(() => {
     if (searchOpen && searchText) {
       onSearch("");
     }
-    setSearchOpen(!searchOpen);
-  };
+    setSearchOpen((prev) => !prev);
+  }, [searchOpen, searchText, onSearch]);
 
-  const handleSearchChange = (e) => {
-    onSearch(e.target.value);
-    if (location.pathname !== "/") {
-      navigate("/");
-    }
-  };
+  const handleSearchChange = useCallback(
+    (e) => {
+      onSearch(e.target.value);
+      if (location.pathname !== "/") {
+        navigate("/");
+      }
+    },
+    [onSearch, location.pathname, navigate]
+  );
 
   const navLinks = [
     { path: "/", label: "Home" },
@@ -82,7 +95,6 @@ function Navbar({ onSearch, searchText }) {
           ))}
         </div>
 
-        {/* Pushes nav actions right; hide on mobile while search is open so the field can use remaining width */}
         <div
           className={`min-w-0 flex-1 ${searchOpen ? "hidden md:block" : ""}`}
         />
@@ -175,4 +187,4 @@ function Navbar({ onSearch, searchText }) {
   );
 }
 
-export default Navbar;
+export default memo(Navbar);

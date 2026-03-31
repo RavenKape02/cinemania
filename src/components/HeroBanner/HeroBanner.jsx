@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Play, Info } from "lucide-react";
 import { GENRE_MAP } from "@/api/api";
 
@@ -16,14 +17,16 @@ function HeroBanner({ movie, onMoreInfo }) {
 
   return (
     <div className="relative w-full h-[85vh] md:h-[90vh] -mt-16 md:-mt-[68px]">
-      {/* Backdrop image */}
+      {/* Backdrop image — LCP element: prioritize loading */}
       <div className="absolute inset-0">
         <img
           src={movie.backdrop}
           alt={movie.title}
           className="w-full h-full object-cover"
+          fetchPriority="high"
+          loading="eager"
+          decoding="async"
         />
-        {/* Gradient overlays */}
         <div className="absolute inset-0 bg-gradient-to-r from-netflix-black/90 via-netflix-black/40 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-t from-netflix-black via-transparent to-netflix-black/30" />
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-netflix-black to-transparent" />
@@ -87,4 +90,4 @@ function HeroBanner({ movie, onMoreInfo }) {
   );
 }
 
-export default HeroBanner;
+export default memo(HeroBanner);

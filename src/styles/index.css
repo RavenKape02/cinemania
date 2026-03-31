@@ -68,3 +68,10 @@
     text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
   }
 }
+
+/* Strip hover-preview cards on devices without pointer hover (mobile/touch) */
+@media (hover: none) {
+  .card-hover-preview {
+    display: none !important;
+  }
+}

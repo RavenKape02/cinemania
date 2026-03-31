@@ -1,12 +1,13 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Analytics } from "@vercel/analytics/react";
-import { SpeedInsights } from "@vercel/speed-insights/react"
+import { SpeedInsights } from "@vercel/speed-insights/react";
 import Navbar from "./components/Navbar/Navbar.jsx";
 import Home from "./views/Home/Home.jsx";
 import Favorites from "./views/Favorites/Favorites.jsx";
-import MovieModal from "./components/MovieModal/MovieModal.jsx";
 import { searchMovies } from "./api/api.js";
+
+const MovieModal = lazy(() => import("./components/MovieModal/MovieModal.jsx"));
 
 function App() {
   const [searchText, setSearchText] = useState("");
@@ -18,6 +19,11 @@ function App() {
   });
   const [modalMovie, setModalMovie] = useState(null);
   const searchTimeoutRef = useRef(null);
+
+  const favoritesSet = useMemo(
+    () => new Set(favorites.map((f) => f.id)),
+    [favorites]
+  );
 
   useEffect(() => {
     localStorage.setItem("favorites", JSON.stringify(favorites));
@@ -73,45 +79,46 @@ function App() {
         <Navbar onSearch={handleSearch} searchText={searchText} />
 
         <Routes>
-        <Route
-          path="/"
-          element={
-            <Home
-              favorites={favorites}
-              onToggleFavorite={toggleFavorite}
-              onMovieClick={handleMovieClick}
-              searchText={searchText}
-              searchResults={searchResults}
-              isSearching={isSearching}
-            />
-          }
-        />
-        <Route
-          path="/favorites"
-          element={
-            <Favorites
-              favorites={favorites}
-              toggleFavorite={toggleFavorite}
-              onMovieClick={handleMovieClick}
-            />
-          }
-        />
-      </Routes>
+          <Route
+            path="/"
+            element={
+              <Home
+                favorites={favorites}
+                favoritesSet={favoritesSet}
+                onToggleFavorite={toggleFavorite}
+                onMovieClick={handleMovieClick}
+                searchText={searchText}
+                searchResults={searchResults}
+                isSearching={isSearching}
+              />
+            }
+          />
+          <Route
+            path="/favorites"
+            element={
+              <Favorites
+                favorites={favorites}
+                toggleFavorite={toggleFavorite}
+                onMovieClick={handleMovieClick}
+              />
+            }
+          />
+        </Routes>
 
-      <MovieModal
-        movie={modalMovie}
-        isOpen={!!modalMovie}
-        onClose={handleCloseModal}
-        isFavorite={
-          modalMovie
-            ? favorites.some((fav) => fav.id === modalMovie.id)
-            : false
-        }
-        onToggleFavorite={toggleFavorite}
-      />
+        {modalMovie && (
+          <Suspense fallback={null}>
+            <MovieModal
+              movie={modalMovie}
+              isOpen={!!modalMovie}
+              onClose={handleCloseModal}
+              isFavorite={favoritesSet.has(modalMovie.id)}
+              onToggleFavorite={toggleFavorite}
+            />
+          </Suspense>
+        )}
 
         <Analytics />
-        <SpeedInsights /> 
+        <SpeedInsights />
       </div>
     </BrowserRouter>
   );

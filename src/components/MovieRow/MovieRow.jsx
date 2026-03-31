@@ -1,30 +1,38 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useCallback, memo } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import MovieCard from "@/components/MovieCard/MovieCard";
 
-function MovieRow({ title, movies, favorites, onToggleFavorite, onMovieClick }) {
+function MovieRow({ title, movies, favoritesSet, onToggleFavorite, onMovieClick }) {
   const rowRef = useRef(null);
+  const rafRef = useRef(null);
   const [showLeft, setShowLeft] = useState(false);
   const [showRight, setShowRight] = useState(true);
 
   if (!movies || movies.length === 0) return null;
 
-  const checkScrollButtons = () => {
-    if (!rowRef.current) return;
-    const { scrollLeft, scrollWidth, clientWidth } = rowRef.current;
-    setShowLeft(scrollLeft > 20);
-    setShowRight(scrollLeft < scrollWidth - clientWidth - 20);
-  };
-
-  const scroll = (direction) => {
-    if (!rowRef.current) return;
-    const scrollAmount = rowRef.current.clientWidth * 0.85;
-    rowRef.current.scrollBy({
-      left: direction === "left" ? -scrollAmount : scrollAmount,
-      behavior: "smooth",
+  const checkScrollButtons = useCallback(() => {
+    if (rafRef.current) return;
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
+      if (!rowRef.current) return;
+      const { scrollLeft, scrollWidth, clientWidth } = rowRef.current;
+      setShowLeft(scrollLeft > 20);
+      setShowRight(scrollLeft < scrollWidth - clientWidth - 20);
     });
-    setTimeout(checkScrollButtons, 400);
-  };
+  }, []);
+
+  const scroll = useCallback(
+    (direction) => {
+      if (!rowRef.current) return;
+      const scrollAmount = rowRef.current.clientWidth * 0.85;
+      rowRef.current.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth",
+      });
+      setTimeout(checkScrollButtons, 400);
+    },
+    [checkScrollButtons]
+  );
 
   return (
     <div className="relative group/row mb-8 md:mb-10">
@@ -33,7 +41,6 @@ function MovieRow({ title, movies, favorites, onToggleFavorite, onMovieClick }) 
       </h2>
 
       <div className="relative">
-        {/* Left scroll button */}
         {showLeft && (
           <button
             onClick={() => scroll("left")}
@@ -44,7 +51,6 @@ function MovieRow({ title, movies, favorites, onToggleFavorite, onMovieClick }) 
           </button>
         )}
 
-        {/* Movie cards row */}
         <div
           ref={rowRef}
           onScroll={checkScrollButtons}
@@ -54,14 +60,13 @@ function MovieRow({ title, movies, favorites, onToggleFavorite, onMovieClick }) 
             <MovieCard
               key={movie.id}
               movie={movie}
-              isFavorite={favorites?.some((fav) => fav.id === movie.id)}
+              isFavorite={favoritesSet ? favoritesSet.has(movie.id) : false}
               onToggleFavorite={onToggleFavorite}
               onClick={onMovieClick}
             />
           ))}
         </div>
 
-        {/* Right scroll button */}
         {showRight && (
           <button
             onClick={() => scroll("right")}
@@ -76,4 +81,4 @@ function MovieRow({ title, movies, favorites, onToggleFavorite, onMovieClick }) 
   );
 }
 
-export default MovieRow;
+export default memo(MovieRow);
