@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react"
 import Navbar from "./components/Navbar/Navbar.jsx";
-import Home from "./pages/Home/Home.jsx";
-import Favorites from "./pages/Favorites/Favorites.jsx";
+import Home from "./views/Home/Home.jsx";
+import Favorites from "./views/Favorites/Favorites.jsx";
 import MovieModal from "./components/MovieModal/MovieModal.jsx";
 import { searchMovies } from "./api/api.js";
 
@@ -68,10 +68,11 @@ function App() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-netflix-black">
-      <Navbar onSearch={handleSearch} searchText={searchText} />
+    <BrowserRouter>
+      <div className="min-h-screen bg-netflix-black">
+        <Navbar onSearch={handleSearch} searchText={searchText} />
 
-      <Routes>
+        <Routes>
         <Route
           path="/"
           element={
@@ -109,9 +110,10 @@ function App() {
         onToggleFavorite={toggleFavorite}
       />
 
-      <Analytics />
-      <SpeedInsights /> 
-    </div>
+        <Analytics />
+        <SpeedInsights /> 
+      </div>
+    </BrowserRouter>
   );
 }
 
