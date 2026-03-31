@@ -116,7 +116,7 @@ function Home({
         {[1, 2].map((i) => (
           <div key={i} className="px-4 md:px-12 mb-8">
             <div className="h-6 w-48 bg-white/10 rounded mb-4" />
-            <div className="flex gap-2">
+            <div className="flex gap-2 overflow-hidden">
               {[1, 2, 3, 4, 5].map((j) => (
                 <div
                   key={j}

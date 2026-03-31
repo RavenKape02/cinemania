@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef, useCallback, memo } from "react";
 import { Search, X, Heart, Menu } from "lucide-react";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 function Navbar({ onSearch, searchText }) {
   const location = useLocation();
@@ -159,6 +159,7 @@ function Navbar({ onSearch, searchText }) {
                 side="right"
                 className="w-64 bg-netflix-black border-l border-white/10 p-0"
               >
+                <SheetTitle className="sr-only">Navigation menu</SheetTitle>
                 <div className="flex flex-col pt-12 px-6">
                   <span className="text-netflix-red font-black text-xl tracking-tighter mb-8">
                     WATCHPARTY

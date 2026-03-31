@@ -35,6 +35,7 @@
     @apply bg-background text-foreground;
     margin: 0;
     padding: 0;
+    overflow-x: hidden;
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;

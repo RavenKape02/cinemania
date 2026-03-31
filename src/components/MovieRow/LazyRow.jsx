@@ -47,7 +47,7 @@ function LazyRow({
     return (
       <div ref={sentinelRef} className="mb-8 md:mb-10 px-4 md:px-12">
         <div className="h-6 w-48 bg-white/10 rounded mb-4" />
-        <div className="flex gap-2">
+        <div className="flex gap-2 overflow-hidden">
           {[1, 2, 3, 4, 5].map((j) => (
             <div
               key={j}
@@ -65,7 +65,7 @@ function LazyRow({
     return (
       <div className="mb-8 md:mb-10 px-4 md:px-12">
         <div className="h-6 w-48 bg-white/10 rounded mb-4 animate-pulse" />
-        <div className="flex gap-2">
+        <div className="flex gap-2 overflow-hidden">
           {[1, 2, 3, 4, 5].map((j) => (
             <div
               key={j}
