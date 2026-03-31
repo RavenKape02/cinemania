@@ -51,9 +51,16 @@ function Navbar({ onSearch, searchText }) {
           : "bg-gradient-to-b from-black/80 via-black/40 to-transparent"
       }`}
     >
-      <div className="flex items-center px-4 md:px-12 h-16 md:h-[68px]">
-        <Link to="/" className="flex-shrink-0 mr-6 md:mr-10">
-          <span className="text-netflix-red font-black text-2xl md:text-3xl tracking-tighter">
+      <div className="flex min-w-0 items-center gap-2 px-4 md:gap-0 md:px-12 h-16 md:h-[68px]">
+        <Link
+          to="/"
+          className={`flex-shrink-0 transition-opacity duration-200 md:mr-10 ${
+            searchOpen
+              ? "mr-0 min-w-0 max-w-[38%] truncate opacity-90 md:max-w-none md:opacity-100"
+              : "mr-6"
+          }`}
+        >
+          <span className="block truncate text-netflix-red font-black text-xl sm:text-2xl md:text-3xl tracking-tighter">
             WATCHPARTY
           </span>
         </Link>
@@ -75,14 +82,21 @@ function Navbar({ onSearch, searchText }) {
           ))}
         </div>
 
-        <div className="flex-1" />
+        {/* Pushes nav actions right; hide on mobile while search is open so the field can use remaining width */}
+        <div
+          className={`min-w-0 flex-1 ${searchOpen ? "hidden md:block" : ""}`}
+        />
 
-        {/* Search */}
-        <div className="flex items-center gap-3">
+        {/* Search + actions */}
+        <div
+          className={`flex min-w-0 items-center gap-2 md:gap-3 ${
+            searchOpen ? "flex-1 md:flex-initial" : "shrink-0"
+          }`}
+        >
           <div
-            className={`flex items-center transition-[width,box-shadow,background-color] duration-300 ease-out ${
+            className={`flex min-w-0 items-center transition-[box-shadow,background-color] duration-300 ease-out ${
               searchOpen
-                ? "w-[min(22rem,calc(100vw-6rem))] min-h-[44px] rounded-full bg-neutral-950/85 pl-1 pr-1 shadow-[0_12px_40px_-8px_rgba(0,0,0,0.85),inset_0_1px_0_0_rgba(255,255,255,0.06)] backdrop-blur-2xl backdrop-saturate-150 focus-within:bg-neutral-900/90 focus-within:shadow-[0_0_36px_-6px_rgba(229,9,20,0.28),0_16px_48px_-10px_rgba(0,0,0,0.92),inset_0_1px_0_0_rgba(255,255,255,0.09)]"
+                ? "h-11 w-0 min-w-0 flex-1 rounded-full bg-neutral-950/85 pl-1 pr-1 shadow-[0_12px_40px_-8px_rgba(0,0,0,0.85),inset_0_1px_0_0_rgba(255,255,255,0.06)] backdrop-blur-2xl backdrop-saturate-150 focus-within:bg-neutral-900/90 focus-within:shadow-[0_0_36px_-6px_rgba(229,9,20,0.28),0_16px_48px_-10px_rgba(0,0,0,0.92),inset_0_1px_0_0_rgba(255,255,255,0.09)] md:h-auto md:min-h-[44px] md:w-[min(22rem,calc(100vw-12rem))] md:flex-initial"
                 : "h-10 w-10 shrink-0 justify-center rounded-full"
             }`}
           >
@@ -122,7 +136,7 @@ function Navbar({ onSearch, searchText }) {
           </Link>
 
           {/* Mobile hamburger */}
-          <div className="md:hidden">
+          <div className="shrink-0 md:hidden">
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger asChild>
                 <button className="p-1.5 text-white" aria-label="Menu">
