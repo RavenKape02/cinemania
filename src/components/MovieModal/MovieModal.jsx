@@ -12,7 +12,11 @@ function MovieModal({
   layoutId,
 }) {
   const details = prefetchedDetails || null;
-  const [morphDone, setMorphDone] = useState(false);
+  // Track when the morph animation finishes so we can:
+  // 1. Show details only after morph (consistent small → large transition)
+  // 2. If no layoutId (no morph), show details immediately
+  const [morphDone, setMorphDone] = useState(!layoutId);
+  const visibleDetails = morphDone ? details : null;
 
   useEffect(() => {
     if (isOpen) {
@@ -35,16 +39,15 @@ function MovieModal({
 
   if (!isOpen || !movie) return null;
 
-  const info = details || movie;
+  const info = visibleDetails || movie;
   const watchUrl =
     movie.mediaType === "tv"
       ? `https://www.vidking.net/embed/tv/${movie.id}/1/1?nextEpisode=true&episodeSelector=true`
       : `https://www.vidking.net/embed/movie/${movie.id}`;
 
-  const cardLayoutId = !morphDone && layoutId ? `card-${layoutId}` : undefined;
-  const imageLayoutId = !morphDone && layoutId ? `img-${layoutId}` : undefined;
-  const titleLayoutId =
-    !morphDone && layoutId ? `title-${layoutId}` : undefined;
+  const cardLayoutId = layoutId ? `card-${layoutId}` : undefined;
+  const imageLayoutId = layoutId ? `img-${layoutId}` : undefined;
+  const titleLayoutId = layoutId ? `title-${layoutId}` : undefined;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-start justify-center">
@@ -87,7 +90,7 @@ function MovieModal({
             className="w-full h-full object-cover"
           />
           {/* High-res backdrop fades in once details load */}
-          {details?.backdrop && (
+          {visibleDetails?.backdrop && (
             <Motion.img
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -138,7 +141,7 @@ function MovieModal({
 
         {/* Info section */}
         <div className="px-6 md:px-8 py-6 space-y-6">
-          {!details ? (
+          {!visibleDetails ? (
             <div className="space-y-3 animate-pulse">
               <div className="h-4 bg-white/10 rounded w-1/3" />
               <div className="h-4 bg-white/10 rounded w-full" />
