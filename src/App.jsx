@@ -32,6 +32,7 @@ function App() {
   const [modalMovie, setModalMovie] = useState(null);
   const [modalDetails, setModalDetails] = useState(null);
   const [modalLayoutId, setModalLayoutId] = useState(null);
+  const modalKeyRef = useRef(0);
   const searchTimeoutRef = useRef(null);
 
   const favoritesSet = useMemo(
@@ -74,6 +75,7 @@ function App() {
   const handleMovieClick = useCallback((movie, layoutId) => {
     const cacheKey = `${movie.mediaType || "movie"}-${movie.id}`;
     const cached = detailsCache.get(cacheKey);
+    modalKeyRef.current += 1;
     setModalDetails(cached || null);
     setModalMovie(movie);
     setModalLayoutId(layoutId || null);
@@ -139,10 +141,7 @@ function App() {
             {modalMovie && (
               <Suspense fallback={null}>
                 <MovieModal
-                  key={
-                    modalLayoutId ||
-                    `${modalMovie.mediaType || "movie"}-${modalMovie.id}`
-                  }
+                  key={`modal-${modalKeyRef.current}`}
                   movie={modalMovie}
                   prefetchedDetails={modalDetails}
                   isOpen={!!modalMovie}
