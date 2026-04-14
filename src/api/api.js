@@ -1,26 +1,30 @@
 const BASE_URL = "https://api.themoviedb.org/3";
 const IMG_BASE = "https://image.tmdb.org/t/p";
 
-const API_OPTIONS = {
-  method: "GET",
-  headers: {
-    accept: "application/json",
-    Authorization: `Bearer ${process.env.NEXT_PUBLIC_MOVIEDB_API_KEY}`,
-  },
-};
+async function fetchFromAPI(url) {
+  try {
+    // Route through our caching API proxy
+    const proxyUrl = url.replace(BASE_URL, "/api/tmdb");
+    const response = await fetch(proxyUrl);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("API Error:", error);
+    return null;
+  }
+}
 
 function mapMovie(item, forceMediaType) {
   const mediaType = forceMediaType || item.media_type || "movie";
   const isTV = mediaType === "tv";
   return {
     id: item.id,
-    title: isTV ? (item.name || item.title) : (item.title || item.name),
+    title: isTV ? item.name || item.title : item.title || item.name,
     year: isTV
       ? item.first_air_date?.split("-")[0]
       : item.release_date?.split("-")[0],
-    image: item.poster_path
-      ? `${IMG_BASE}/w500${item.poster_path}`
-      : null,
+    image: item.poster_path ? `${IMG_BASE}/w500${item.poster_path}` : null,
     backdrop: item.backdrop_path
       ? `${IMG_BASE}/original${item.backdrop_path}`
       : null,
@@ -35,20 +39,10 @@ function mapMovie(item, forceMediaType) {
   };
 }
 
-async function fetchFromAPI(url) {
-  try {
-    const response = await fetch(url, API_OPTIONS);
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error("API Error:", error);
-    return null;
-  }
-}
-
 export async function fetchTrending() {
-  const data = await fetchFromAPI(`${BASE_URL}/trending/all/week?language=en-US`);
+  const data = await fetchFromAPI(
+    `${BASE_URL}/trending/all/week?language=en-US`,
+  );
   if (!data?.results) return [];
   return data.results
     .filter((item) => item.media_type !== "person")
@@ -57,7 +51,7 @@ export async function fetchTrending() {
 
 export async function fetchPopularMovies() {
   const data = await fetchFromAPI(
-    `${BASE_URL}/movie/popular?language=en-US&page=1`
+    `${BASE_URL}/movie/popular?language=en-US&page=1`,
   );
   if (!data?.results) return [];
   return data.results.map((item) => mapMovie(item, "movie"));
@@ -65,7 +59,7 @@ export async function fetchPopularMovies() {
 
 export async function fetchTopRated() {
   const data = await fetchFromAPI(
-    `${BASE_URL}/movie/top_rated?language=en-US&page=1`
+    `${BASE_URL}/movie/top_rated?language=en-US&page=1`,
   );
   if (!data?.results) return [];
   return data.results.map((item) => mapMovie(item, "movie"));
@@ -73,7 +67,7 @@ export async function fetchTopRated() {
 
 export async function fetchNowPlaying() {
   const data = await fetchFromAPI(
-    `${BASE_URL}/movie/now_playing?language=en-US&page=1`
+    `${BASE_URL}/movie/now_playing?language=en-US&page=1`,
   );
   if (!data?.results) return [];
   return data.results.map((item) => mapMovie(item, "movie"));
@@ -81,7 +75,7 @@ export async function fetchNowPlaying() {
 
 export async function fetchUpcoming() {
   const data = await fetchFromAPI(
-    `${BASE_URL}/movie/upcoming?language=en-US&page=1`
+    `${BASE_URL}/movie/upcoming?language=en-US&page=1`,
   );
   if (!data?.results) return [];
   return data.results.map((item) => mapMovie(item, "movie"));
@@ -89,7 +83,7 @@ export async function fetchUpcoming() {
 
 export async function fetchPopularTV() {
   const data = await fetchFromAPI(
-    `${BASE_URL}/tv/popular?language=en-US&page=1`
+    `${BASE_URL}/tv/popular?language=en-US&page=1`,
   );
   if (!data?.results) return [];
   return data.results.map((item) => mapMovie(item, "tv"));
@@ -97,7 +91,7 @@ export async function fetchPopularTV() {
 
 export async function fetchByGenre(genreId, mediaType = "movie") {
   const data = await fetchFromAPI(
-    `${BASE_URL}/discover/${mediaType}?with_genres=${genreId}&language=en-US&page=1&sort_by=popularity.desc`
+    `${BASE_URL}/discover/${mediaType}?with_genres=${genreId}&language=en-US&page=1&sort_by=popularity.desc`,
   );
   if (!data?.results) return [];
   return data.results.map((item) => mapMovie(item, mediaType));
@@ -105,7 +99,7 @@ export async function fetchByGenre(genreId, mediaType = "movie") {
 
 export async function searchMovies(query) {
   const data = await fetchFromAPI(
-    `${BASE_URL}/search/multi?query=${encodeURIComponent(query)}&include_adult=false&language=en-US&page=1`
+    `${BASE_URL}/search/multi?query=${encodeURIComponent(query)}&include_adult=false&language=en-US&page=1`,
   );
   if (!data?.results) return [];
   return data.results
@@ -115,7 +109,7 @@ export async function searchMovies(query) {
 
 export async function fetchMovieDetails(id, mediaType = "movie") {
   const data = await fetchFromAPI(
-    `${BASE_URL}/${mediaType}/${id}?append_to_response=credits,similar,videos&language=en-US`
+    `${BASE_URL}/${mediaType}/${id}?append_to_response=credits,similar,videos&language=en-US`,
   );
   if (!data) return null;
 
@@ -124,7 +118,7 @@ export async function fetchMovieDetails(id, mediaType = "movie") {
     data.credits?.crew?.find((c) => c.job === "Director")?.name || "";
   const genres = data.genres?.map((g) => g.name) || [];
   const trailer = data.videos?.results?.find(
-    (v) => v.type === "Trailer" && v.site === "YouTube"
+    (v) => v.type === "Trailer" && v.site === "YouTube",
   );
   const similar = (data.similar?.results || [])
     .slice(0, 12)
@@ -133,11 +127,14 @@ export async function fetchMovieDetails(id, mediaType = "movie") {
   return {
     id: data.id,
     title: mediaType === "tv" ? data.name : data.title,
-    year: mediaType === "tv"
-      ? data.first_air_date?.split("-")[0]
-      : data.release_date?.split("-")[0],
+    year:
+      mediaType === "tv"
+        ? data.first_air_date?.split("-")[0]
+        : data.release_date?.split("-")[0],
     image: data.poster_path ? `${IMG_BASE}/w500${data.poster_path}` : null,
-    backdrop: data.backdrop_path ? `${IMG_BASE}/original${data.backdrop_path}` : null,
+    backdrop: data.backdrop_path
+      ? `${IMG_BASE}/original${data.backdrop_path}`
+      : null,
     overview: data.overview || "",
     mediaType,
     voteAverage: data.vote_average,
