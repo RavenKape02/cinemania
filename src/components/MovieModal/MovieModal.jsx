@@ -91,13 +91,25 @@ function MovieModal({
         </button>
 
         {/* Hero image */}
-        <div className="relative aspect-video w-full">
+        <div className="relative aspect-video w-full overflow-hidden">
+          {/* Stable poster for morph – never changes src */}
           <Motion.img
             layoutId={imageLayoutId}
-            src={info.backdrop || info.image}
-            alt={info.title}
+            src={movie.image}
+            alt={movie.title}
             className="w-full h-full object-cover"
           />
+          {/* High-res backdrop fades in once details load */}
+          {details?.backdrop && (
+            <Motion.img
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.4 }}
+              src={details.backdrop}
+              alt={movie.title}
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          )}
           <div className="absolute inset-0 bg-gradient-to-t from-netflix-dark via-transparent to-transparent" />
 
           {/* Actions over hero */}
@@ -107,7 +119,7 @@ function MovieModal({
                 layoutId={titleLayoutId}
                 className="text-2xl md:text-4xl font-black text-white text-shadow-lg"
               >
-                {info.title}
+                {movie.title}
               </Motion.h2>
               <div className="flex items-center gap-3">
                 <button
