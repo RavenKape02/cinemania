@@ -18,6 +18,13 @@ function MovieModal({
   const [morphDone, setMorphDone] = useState(!layoutId);
   const visibleDetails = morphDone ? details : null;
 
+  // Reliable morph gate: match the spring animation duration
+  useEffect(() => {
+    if (!layoutId) return;
+    const timer = setTimeout(() => setMorphDone(true), 450);
+    return () => clearTimeout(timer);
+  }, [layoutId]);
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -64,7 +71,6 @@ function MovieModal({
       {/* Modal */}
       <Motion.div
         layoutId={cardLayoutId}
-        onLayoutAnimationComplete={() => setMorphDone(true)}
         initial={!layoutId ? { opacity: 0, scale: 0.92, y: 40 } : undefined}
         animate={!layoutId ? { opacity: 1, scale: 1, y: 0 } : undefined}
         exit={!layoutId ? { opacity: 0, scale: 0.95, y: 20 } : undefined}
