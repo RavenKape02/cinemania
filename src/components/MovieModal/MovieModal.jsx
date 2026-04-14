@@ -1,33 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { X, Play, Heart, Star } from "lucide-react";
 import { motion as Motion } from "framer-motion";
-import { fetchMovieDetails } from "@/api/api";
 
 function MovieModal({
   movie,
+  prefetchedDetails,
   isOpen,
   onClose,
   isFavorite,
   onToggleFavorite,
   layoutId,
 }) {
-  const [details, setDetails] = useState(null);
-
-  useEffect(() => {
-    if (!movie || !isOpen) return;
-
-    let ignore = false;
-
-    fetchMovieDetails(movie.id, movie.mediaType).then((data) => {
-      if (!ignore) {
-        setDetails(data);
-      }
-    });
-
-    return () => {
-      ignore = true;
-    };
-  }, [movie, isOpen]);
+  const details = prefetchedDetails || null;
 
   useEffect(() => {
     if (isOpen) {

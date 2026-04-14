@@ -14,7 +14,7 @@ import { SpeedInsights } from "@vercel/speed-insights/react";
 import Navbar from "./components/Navbar/Navbar.jsx";
 import Home from "./views/Home/Home.jsx";
 import Favorites from "./views/Favorites/Favorites.jsx";
-import { searchMovies } from "./api/api.js";
+import { searchMovies, fetchMovieDetails } from "./api/api.js";
 
 const MovieModal = lazy(() => import("./components/MovieModal/MovieModal.jsx"));
 
@@ -27,6 +27,7 @@ function App() {
     return saved ? JSON.parse(saved) : [];
   });
   const [modalMovie, setModalMovie] = useState(null);
+  const [modalDetails, setModalDetails] = useState(null);
   const [modalLayoutId, setModalLayoutId] = useState(null);
   const searchTimeoutRef = useRef(null);
 
@@ -67,13 +68,16 @@ function App() {
     }, 300);
   }, []);
 
-  const handleMovieClick = useCallback((movie, layoutId) => {
+  const handleMovieClick = useCallback(async (movie, layoutId) => {
+    const details = await fetchMovieDetails(movie.id, movie.mediaType);
+    setModalDetails(details);
     setModalMovie(movie);
     setModalLayoutId(layoutId || null);
   }, []);
 
   const handleCloseModal = useCallback(() => {
     setModalMovie(null);
+    setModalDetails(null);
     setModalLayoutId(null);
   }, []);
 
@@ -127,6 +131,7 @@ function App() {
                     `${modalMovie.mediaType || "movie"}-${modalMovie.id}`
                   }
                   movie={modalMovie}
+                  prefetchedDetails={modalDetails}
                   isOpen={!!modalMovie}
                   onClose={handleCloseModal}
                   isFavorite={favoritesSet.has(modalMovie.id)}
