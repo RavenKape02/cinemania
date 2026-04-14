@@ -18,6 +18,9 @@ import { searchMovies, fetchMovieDetails } from "./api/api.js";
 
 const MovieModal = lazy(() => import("./components/MovieModal/MovieModal.jsx"));
 
+// In-memory details cache so repeat opens are instant
+const detailsCache = new Map();
+
 function App() {
   const [searchText, setSearchText] = useState("");
   const [searchResults, setSearchResults] = useState([]);
@@ -68,11 +71,21 @@ function App() {
     }, 300);
   }, []);
 
-  const handleMovieClick = useCallback(async (movie, layoutId) => {
-    const details = await fetchMovieDetails(movie.id, movie.mediaType);
-    setModalDetails(details);
+  const handleMovieClick = useCallback((movie, layoutId) => {
+    const cacheKey = `${movie.mediaType || "movie"}-${movie.id}`;
+    const cached = detailsCache.get(cacheKey);
+    setModalDetails(cached || null);
     setModalMovie(movie);
     setModalLayoutId(layoutId || null);
+
+    if (!cached) {
+      fetchMovieDetails(movie.id, movie.mediaType).then((data) => {
+        if (data) {
+          detailsCache.set(cacheKey, data);
+          setModalDetails(data);
+        }
+      });
+    }
   }, []);
 
   const handleCloseModal = useCallback(() => {

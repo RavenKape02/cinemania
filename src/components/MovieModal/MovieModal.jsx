@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { X, Play, Heart, Star } from "lucide-react";
 import { motion as Motion } from "framer-motion";
 
@@ -12,6 +12,7 @@ function MovieModal({
   layoutId,
 }) {
   const details = prefetchedDetails || null;
+  const [morphDone, setMorphDone] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -40,9 +41,10 @@ function MovieModal({
       ? `https://www.vidking.net/embed/tv/${movie.id}/1/1?nextEpisode=true&episodeSelector=true`
       : `https://www.vidking.net/embed/movie/${movie.id}`;
 
-  const cardLayoutId = layoutId ? `card-${layoutId}` : undefined;
-  const imageLayoutId = layoutId ? `img-${layoutId}` : undefined;
-  const titleLayoutId = layoutId ? `title-${layoutId}` : undefined;
+  const cardLayoutId = !morphDone && layoutId ? `card-${layoutId}` : undefined;
+  const imageLayoutId = !morphDone && layoutId ? `img-${layoutId}` : undefined;
+  const titleLayoutId =
+    !morphDone && layoutId ? `title-${layoutId}` : undefined;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-start justify-center">
@@ -59,6 +61,7 @@ function MovieModal({
       {/* Modal */}
       <Motion.div
         layoutId={cardLayoutId}
+        onLayoutAnimationComplete={() => setMorphDone(true)}
         initial={!layoutId ? { opacity: 0, scale: 0.92, y: 40 } : undefined}
         animate={!layoutId ? { opacity: 1, scale: 1, y: 0 } : undefined}
         exit={!layoutId ? { opacity: 0, scale: 0.95, y: 20 } : undefined}
