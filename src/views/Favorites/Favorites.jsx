@@ -1,5 +1,6 @@
 import { Heart } from "lucide-react";
 import { Link } from "react-router-dom";
+import { motion as Motion } from "framer-motion";
 import MovieCard from "@/components/MovieCard/MovieCard";
 
 function Favorites({ favorites, toggleFavorite, onMovieClick }) {
@@ -18,14 +19,21 @@ function Favorites({ favorites, toggleFavorite, onMovieClick }) {
 
       {favorites.length > 0 ? (
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2 md:gap-3 pb-12">
-          {favorites.map((movie) => (
-            <MovieCard
+          {favorites.map((movie, index) => (
+            <Motion.div
               key={movie.id}
-              movie={movie}
-              isFavorite={true}
-              onToggleFavorite={toggleFavorite}
-              onClick={onMovieClick}
-            />
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3, delay: Math.min(index * 0.04, 0.8) }}
+            >
+              <MovieCard
+                movie={movie}
+                rowId="favorites"
+                isFavorite={true}
+                onToggleFavorite={toggleFavorite}
+                onClick={onMovieClick}
+              />
+            </Motion.div>
           ))}
         </div>
       ) : (

@@ -1,31 +1,33 @@
 import { useEffect, useState } from "react";
 import { X, Play, Heart, Star } from "lucide-react";
+import { motion as Motion } from "framer-motion";
 import { fetchMovieDetails } from "@/api/api";
 
-function MovieModal({ movie, isOpen, onClose, isFavorite, onToggleFavorite }) {
+function MovieModal({
+  movie,
+  isOpen,
+  onClose,
+  isFavorite,
+  onToggleFavorite,
+  layoutId,
+}) {
   const [details, setDetails] = useState(null);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!movie || !isOpen) {
-      setDetails(null);
-      return;
-    }
+    if (!movie || !isOpen) return;
 
     let ignore = false;
-    setLoading(true);
 
     fetchMovieDetails(movie.id, movie.mediaType).then((data) => {
       if (!ignore) {
         setDetails(data);
-        setLoading(false);
       }
     });
 
     return () => {
       ignore = true;
     };
-  }, [movie?.id, movie?.mediaType, isOpen]);
+  }, [movie, isOpen]);
 
   useEffect(() => {
     if (isOpen) {
@@ -54,16 +56,31 @@ function MovieModal({ movie, isOpen, onClose, isFavorite, onToggleFavorite }) {
       ? `https://www.vidking.net/embed/tv/${movie.id}/1/1?nextEpisode=true&episodeSelector=true`
       : `https://www.vidking.net/embed/movie/${movie.id}`;
 
+  const cardLayoutId = layoutId ? `card-${layoutId}` : undefined;
+  const imageLayoutId = layoutId ? `img-${layoutId}` : undefined;
+  const titleLayoutId = layoutId ? `title-${layoutId}` : undefined;
+
   return (
     <div className="fixed inset-0 z-[100] flex items-start justify-center">
       {/* Backdrop */}
-      <div
+      <Motion.div
         className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.22, ease: "easeOut" }}
         onClick={onClose}
       />
 
       {/* Modal */}
-      <div className="relative w-full max-w-3xl mx-4 mt-8 mb-8 max-h-[90vh] overflow-y-auto rounded-lg bg-netflix-dark shadow-2xl scrollbar-hide animate-in fade-in zoom-in-95 duration-200">
+      <Motion.div
+        layoutId={cardLayoutId}
+        initial={!layoutId ? { opacity: 0, scale: 0.92, y: 40 } : undefined}
+        animate={!layoutId ? { opacity: 1, scale: 1, y: 0 } : undefined}
+        exit={!layoutId ? { opacity: 0, scale: 0.95, y: 20 } : undefined}
+        transition={{ type: "spring", stiffness: 320, damping: 34 }}
+        className="relative w-full max-w-3xl mx-4 mt-8 mb-8 max-h-[90vh] overflow-y-auto rounded-lg bg-netflix-dark shadow-2xl scrollbar-hide"
+      >
         {/* Close button */}
         <button
           onClick={onClose}
@@ -75,7 +92,8 @@ function MovieModal({ movie, isOpen, onClose, isFavorite, onToggleFavorite }) {
 
         {/* Hero image */}
         <div className="relative aspect-video w-full">
-          <img
+          <Motion.img
+            layoutId={imageLayoutId}
             src={info.backdrop || info.image}
             alt={info.title}
             className="w-full h-full object-cover"
@@ -85,9 +103,12 @@ function MovieModal({ movie, isOpen, onClose, isFavorite, onToggleFavorite }) {
           {/* Actions over hero */}
           <div className="absolute bottom-6 left-6 right-6 flex items-end justify-between">
             <div className="space-y-3">
-              <h2 className="text-2xl md:text-4xl font-black text-white text-shadow-lg">
+              <Motion.h2
+                layoutId={titleLayoutId}
+                className="text-2xl md:text-4xl font-black text-white text-shadow-lg"
+              >
                 {info.title}
-              </h2>
+              </Motion.h2>
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => window.open(watchUrl, "_blank")}
@@ -118,7 +139,7 @@ function MovieModal({ movie, isOpen, onClose, isFavorite, onToggleFavorite }) {
 
         {/* Info section */}
         <div className="px-6 md:px-8 py-6 space-y-6">
-          {loading ? (
+          {!details ? (
             <div className="space-y-3 animate-pulse">
               <div className="h-4 bg-white/10 rounded w-1/3" />
               <div className="h-4 bg-white/10 rounded w-full" />
@@ -236,7 +257,7 @@ function MovieModal({ movie, isOpen, onClose, isFavorite, onToggleFavorite }) {
             </>
           )}
         </div>
-      </div>
+      </Motion.div>
     </div>
   );
 }

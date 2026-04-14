@@ -1,4 +1,11 @@
-import { useState, useEffect, useCallback, memo, useDeferredValue } from "react";
+import {
+  useState,
+  useEffect,
+  useCallback,
+  memo,
+  useDeferredValue,
+} from "react";
+import { motion as Motion } from "framer-motion";
 import HeroBanner from "@/components/HeroBanner/HeroBanner";
 import LazyRow from "@/components/MovieRow/LazyRow";
 import MovieCard from "@/components/MovieCard/MovieCard";
@@ -38,14 +45,21 @@ const SearchResults = memo(function SearchResults({
       </h2>
       {searchResults.length > 0 ? (
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2 md:gap-3">
-          {searchResults.map((movie) => (
-            <MovieCard
+          {searchResults.map((movie, index) => (
+            <Motion.div
               key={movie.id}
-              movie={movie}
-              isFavorite={favoritesSet.has(movie.id)}
-              onToggleFavorite={onToggleFavorite}
-              onClick={onMovieClick}
-            />
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3, delay: Math.min(index * 0.04, 0.8) }}
+            >
+              <MovieCard
+                movie={movie}
+                rowId="search"
+                isFavorite={favoritesSet.has(movie.id)}
+                onToggleFavorite={onToggleFavorite}
+                onClick={onMovieClick}
+              />
+            </Motion.div>
           ))}
         </div>
       ) : (
@@ -85,7 +99,7 @@ function Home({
       const heroPool = trending.filter((m) => m.backdrop);
       if (heroPool.length > 0) {
         setHeroMovie(
-          heroPool[Math.floor(Math.random() * Math.min(5, heroPool.length))]
+          heroPool[Math.floor(Math.random() * Math.min(5, heroPool.length))],
         );
       }
       setTrendingRow(trending);

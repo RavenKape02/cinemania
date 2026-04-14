@@ -1,7 +1,12 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef, useCallback, memo } from "react";
 import { Search, X, Heart, Menu } from "lucide-react";
-import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 function Navbar({ onSearch, searchText }) {
   const location = useLocation();
@@ -48,8 +53,17 @@ function Navbar({ onSearch, searchText }) {
         navigate("/");
       }
     },
-    [onSearch, location.pathname, navigate]
+    [onSearch, location.pathname, navigate],
   );
+
+  const handleHomeClick = useCallback(() => {
+    if (searchText) {
+      onSearch("");
+    }
+    if (searchOpen) {
+      setSearchOpen(false);
+    }
+  }, [searchText, searchOpen, onSearch]);
 
   const navLinks = [
     { path: "/", label: "Home" },
@@ -67,6 +81,7 @@ function Navbar({ onSearch, searchText }) {
       <div className="flex min-w-0 items-center gap-2 px-4 md:gap-0 md:px-12 h-16 md:h-[68px]">
         <Link
           to="/"
+          onClick={handleHomeClick}
           className={`flex-shrink-0 transition-opacity duration-200 md:mr-10 ${
             searchOpen
               ? "mr-0 min-w-0 max-w-[38%] truncate opacity-90 md:max-w-none md:opacity-100"
@@ -122,7 +137,11 @@ function Navbar({ onSearch, searchText }) {
               }`}
               aria-label={searchOpen ? "Close search" : "Open search"}
             >
-              {searchOpen ? <X size={18} strokeWidth={2.25} /> : <Search size={20} />}
+              {searchOpen ? (
+                <X size={18} strokeWidth={2.25} />
+              ) : (
+                <Search size={20} />
+              )}
             </button>
             {searchOpen && (
               <input
