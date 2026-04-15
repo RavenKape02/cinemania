@@ -4,8 +4,6 @@ import {
   useRef,
   useCallback,
   useMemo,
-  lazy,
-  Suspense,
 } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AnimatePresence, LayoutGroup } from "framer-motion";
@@ -14,9 +12,8 @@ import { SpeedInsights } from "@vercel/speed-insights/react";
 import Navbar from "./components/Navbar/Navbar.jsx";
 import Home from "./views/Home/Home.jsx";
 import Favorites from "./views/Favorites/Favorites.jsx";
+import MovieModal from "./components/MovieModal/MovieModal.jsx";
 import { searchMovies, fetchMovieDetails, getCachedDetails } from "./api/api.js";
-
-const MovieModal = lazy(() => import("./components/MovieModal/MovieModal.jsx"));
 
 function App() {
   const [searchText, setSearchText] = useState("");
@@ -142,18 +139,16 @@ function App() {
 
           <AnimatePresence initial={false}>
             {modalMovie && (
-              <Suspense fallback={null}>
-                <MovieModal
-                  key={`modal-${modalKeyRef.current}`}
-                  movie={modalMovie}
-                  prefetchedDetails={modalDetails}
-                  isOpen={!!modalMovie}
-                  onClose={handleCloseModal}
-                  isFavorite={favoritesSet.has(modalMovie.id)}
-                  onToggleFavorite={toggleFavorite}
-                  layoutId={modalLayoutId}
-                />
-              </Suspense>
+              <MovieModal
+                key={`modal-${modalKeyRef.current}`}
+                movie={modalMovie}
+                prefetchedDetails={modalDetails}
+                isOpen={!!modalMovie}
+                onClose={handleCloseModal}
+                isFavorite={favoritesSet.has(modalMovie.id)}
+                onToggleFavorite={toggleFavorite}
+                layoutId={modalLayoutId}
+              />
             )}
           </AnimatePresence>
 
