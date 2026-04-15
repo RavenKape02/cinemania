@@ -1,8 +1,23 @@
 import { useRef, useState, useCallback, memo } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { AnimatedGroup } from "@/components/motion-primitives/animated-group";
 import MovieCard from "@/components/MovieCard/MovieCard";
 
-function MovieRow({ title, movies, favoritesSet, onToggleFavorite, onMovieClick }) {
+const rowVariants = {
+  container: {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.04 },
+    },
+  },
+  item: {
+    hidden: { opacity: 0, scale: 0.92 },
+    visible: { opacity: 1, scale: 1 },
+  },
+};
+
+function MovieRow({ title, movies, favoritesSet, onToggleFavorite }) {
   const rowRef = useRef(null);
   const rafRef = useRef(null);
   const [showLeft, setShowLeft] = useState(false);
@@ -54,17 +69,23 @@ function MovieRow({ title, movies, favoritesSet, onToggleFavorite, onMovieClick 
         <div
           ref={rowRef}
           onScroll={checkScrollButtons}
-          className="flex gap-1.5 md:gap-2 overflow-x-auto scrollbar-hide px-4 md:px-12 py-4"
+          className="overflow-x-auto scrollbar-hide px-4 md:px-12 py-4"
         >
-          {movies.map((movie) => (
-            <MovieCard
-              key={movie.id}
-              movie={movie}
-              isFavorite={favoritesSet ? favoritesSet.has(movie.id) : false}
-              onToggleFavorite={onToggleFavorite}
-              onClick={onMovieClick}
-            />
-          ))}
+          <AnimatedGroup
+            variants={rowVariants}
+            inView
+            inViewMargin="-50px"
+            className="flex gap-1.5 md:gap-2 w-max"
+          >
+            {movies.map((movie) => (
+              <MovieCard
+                key={movie.id}
+                movie={movie}
+                isFavorite={favoritesSet ? favoritesSet.has(movie.id) : false}
+                onToggleFavorite={onToggleFavorite}
+              />
+            ))}
+          </AnimatedGroup>
         </div>
 
         {showRight && (

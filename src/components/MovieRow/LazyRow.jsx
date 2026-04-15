@@ -7,7 +7,6 @@ function LazyRow({
   fetcher,
   favoritesSet,
   onToggleFavorite,
-  onMovieClick,
   eager = false,
 }) {
   const [movies, setMovies] = useState(propMovies || null);
@@ -83,7 +82,6 @@ function LazyRow({
       movies={movies}
       favoritesSet={favoritesSet}
       onToggleFavorite={onToggleFavorite}
-      onMovieClick={onMovieClick}
     />
   );
 }

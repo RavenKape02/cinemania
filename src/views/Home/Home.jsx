@@ -1,14 +1,13 @@
 import {
   useState,
   useEffect,
-  useCallback,
   memo,
   useDeferredValue,
 } from "react";
-import { motion as Motion } from "framer-motion";
 import HeroBanner from "@/components/HeroBanner/HeroBanner";
 import LazyRow from "@/components/MovieRow/LazyRow";
 import MovieCard from "@/components/MovieCard/MovieCard";
+import { AnimatedGroup } from "@/components/motion-primitives/animated-group";
 import {
   fetchTrending,
   fetchPopularMovies,
@@ -36,7 +35,6 @@ const SearchResults = memo(function SearchResults({
   searchResults,
   favoritesSet,
   onToggleFavorite,
-  onMovieClick,
 }) {
   return (
     <div className="pt-20 md:pt-24 px-4 md:px-12 min-h-screen">
@@ -44,24 +42,19 @@ const SearchResults = memo(function SearchResults({
         Results for &ldquo;{searchText}&rdquo;
       </h2>
       {searchResults.length > 0 ? (
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2 md:gap-3">
-          {searchResults.map((movie, index) => (
-            <Motion.div
+        <AnimatedGroup
+          preset="blur-slide"
+          className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2 md:gap-3"
+        >
+          {searchResults.map((movie) => (
+            <MovieCard
               key={movie.id}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.3, delay: Math.min(index * 0.04, 0.8) }}
-            >
-              <MovieCard
-                movie={movie}
-                rowId="search"
-                isFavorite={favoritesSet.has(movie.id)}
-                onToggleFavorite={onToggleFavorite}
-                onClick={onMovieClick}
-              />
-            </Motion.div>
+              movie={movie}
+              isFavorite={favoritesSet.has(movie.id)}
+              onToggleFavorite={onToggleFavorite}
+            />
           ))}
-        </div>
+        </AnimatedGroup>
       ) : (
         <div className="text-center py-20">
           <p className="text-netflix-light-gray text-lg">
@@ -80,7 +73,6 @@ function Home({
   favorites,
   favoritesSet,
   onToggleFavorite,
-  onMovieClick,
   searchText,
   searchResults,
   isSearching,
@@ -118,7 +110,6 @@ function Home({
         searchResults={searchResults}
         favoritesSet={favoritesSet}
         onToggleFavorite={onToggleFavorite}
-        onMovieClick={onMovieClick}
       />
     );
   }
@@ -146,7 +137,7 @@ function Home({
 
   return (
     <div className="min-h-screen bg-netflix-black">
-      <HeroBanner movie={heroMovie} onMoreInfo={onMovieClick} />
+      <HeroBanner movie={heroMovie} />
 
       <div className="-mt-16 md:-mt-24 relative z-10">
         {trendingRow && trendingRow.length > 0 && (
@@ -155,7 +146,6 @@ function Home({
             movies={trendingRow}
             favoritesSet={favoritesSet}
             onToggleFavorite={onToggleFavorite}
-            onMovieClick={onMovieClick}
             eager
           />
         )}
@@ -167,7 +157,6 @@ function Home({
             fetcher={config.fetcher}
             favoritesSet={favoritesSet}
             onToggleFavorite={onToggleFavorite}
-            onMovieClick={onMovieClick}
           />
         ))}
       </div>

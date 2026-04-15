@@ -1,9 +1,9 @@
 import { Heart } from "lucide-react";
 import { Link } from "react-router-dom";
-import { motion as Motion } from "framer-motion";
 import MovieCard from "@/components/MovieCard/MovieCard";
+import { AnimatedGroup } from "@/components/motion-primitives/animated-group";
 
-function Favorites({ favorites, toggleFavorite, onMovieClick }) {
+function Favorites({ favorites, favoritesSet, toggleFavorite }) {
   return (
     <div className="min-h-screen bg-netflix-black pt-20 md:pt-24 px-4 md:px-12">
       <div className="mb-8">
@@ -18,24 +18,19 @@ function Favorites({ favorites, toggleFavorite, onMovieClick }) {
       </div>
 
       {favorites.length > 0 ? (
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2 md:gap-3 pb-12">
-          {favorites.map((movie, index) => (
-            <Motion.div
+        <AnimatedGroup
+          preset="blur-slide"
+          className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2 md:gap-3 pb-12"
+        >
+          {favorites.map((movie) => (
+            <MovieCard
               key={movie.id}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.3, delay: Math.min(index * 0.04, 0.8) }}
-            >
-              <MovieCard
-                movie={movie}
-                rowId="favorites"
-                isFavorite={true}
-                onToggleFavorite={toggleFavorite}
-                onClick={onMovieClick}
-              />
-            </Motion.div>
+              movie={movie}
+              isFavorite={favoritesSet ? favoritesSet.has(movie.id) : true}
+              onToggleFavorite={toggleFavorite}
+            />
           ))}
-        </div>
+        </AnimatedGroup>
       ) : (
         <div className="flex flex-col items-center justify-center py-32">
           <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-6">
