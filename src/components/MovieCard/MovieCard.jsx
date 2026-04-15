@@ -1,9 +1,10 @@
-import { memo } from "react";
+import { useRef, memo } from "react";
 import { Play, ChevronDown, Heart } from "lucide-react";
-import { motion as Motion } from "framer-motion";
 import { GENRE_MAP } from "@/api/api";
 
-function MovieCard({ movie, isFavorite, onToggleFavorite, onClick, rowId }) {
+function MovieCard({ movie, isFavorite, onToggleFavorite, onClick }) {
+  const posterRef = useRef(null);
+
   if (!movie || !movie.image) return null;
 
   const genreNames = (movie.genreIds || [])
@@ -16,31 +17,27 @@ function MovieCard({ movie, isFavorite, onToggleFavorite, onClick, rowId }) {
       ? `https://www.vidking.net/embed/tv/${movie.id}/1/1?nextEpisode=true&episodeSelector=true`
       : `https://www.vidking.net/embed/movie/${movie.id}`;
 
-  const layoutBase = `${rowId}-${movie.mediaType || "movie"}-${movie.id}`;
-  const cardLayoutId = `card-${layoutBase}`;
-  const imageLayoutId = `img-${layoutBase}`;
-  const titleLayoutId = `title-${layoutBase}`;
-
-  const handleClick = () => onClick?.(movie, layoutBase);
+  const handleClick = () => {
+    const rect = posterRef.current?.getBoundingClientRect();
+    onClick?.(movie, rect ? { top: rect.top, left: rect.left, width: rect.width, height: rect.height } : null);
+  };
 
   return (
     <div className="group/card relative flex-shrink-0 w-[140px] sm:w-[170px] md:w-[200px] lg:w-[230px] cursor-pointer">
       {/* Poster image */}
-      <Motion.div
-        layoutId={cardLayoutId}
-        transition={{ type: "spring", stiffness: 320, damping: 34 }}
+      <div
+        ref={posterRef}
         className="relative rounded overflow-hidden aspect-[2/3] bg-netflix-dark"
         onClick={handleClick}
       >
-        <Motion.img
-          layoutId={imageLayoutId}
+        <img
           src={movie.image}
           alt={movie.title}
           className="w-full h-full object-cover transition-transform duration-300 group-hover/card:scale-105"
           loading="lazy"
         />
         <div className="absolute inset-0 bg-black/0 group-hover/card:bg-black/20 transition-colors" />
-      </Motion.div>
+      </div>
 
       {/* Hover expanded card — hidden on touch devices via @media(hover:hover) in CSS */}
       <div
@@ -58,12 +55,9 @@ function MovieCard({ movie, isFavorite, onToggleFavorite, onClick, rowId }) {
             />
             <div className="absolute inset-0 bg-gradient-to-t from-netflix-dark via-transparent to-transparent" />
             <div className="absolute bottom-3 left-3 right-3">
-              <Motion.h3
-                layoutId={titleLayoutId}
-                className="text-white font-bold text-sm truncate text-shadow"
-              >
+              <h3 className="text-white font-bold text-sm truncate text-shadow">
                 {movie.title}
-              </Motion.h3>
+              </h3>
             </div>
           </div>
 

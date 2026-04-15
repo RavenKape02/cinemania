@@ -1,17 +1,42 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { X, Play, Heart, Star } from "lucide-react";
 import { motion as Motion } from "framer-motion";
 
+function computeFlipInitial(rect) {
+  if (!rect) return null;
+
+  const vw = window.innerWidth;
+  const modalWidth = Math.min(vw - 32, 768);
+  const scale = rect.width / modalWidth;
+
+  const modalCenterX = vw / 2;
+  const cardCenterX = rect.left + rect.width / 2;
+  const cardCenterY = rect.top + rect.height / 2;
+
+  const modalAspectHeight = modalWidth * (9 / 16);
+  const modalCenterY = 32 + modalAspectHeight / 2;
+
+  return {
+    scale,
+    x: cardCenterX - modalCenterX,
+    y: cardCenterY - modalCenterY,
+    opacity: 0.6,
+    borderRadius: "0.5rem",
+  };
+}
+
+const springTransition = { type: "spring", stiffness: 260, damping: 28 };
+
 function MovieModal({
   movie,
-  prefetchedDetails,
+  details,
+  sourceRect,
   isOpen,
   onClose,
   isFavorite,
   onToggleFavorite,
-  layoutId,
 }) {
-  const details = prefetchedDetails;
+  const flipInitial = useMemo(() => computeFlipInitial(sourceRect), [sourceRect]);
 
   useEffect(() => {
     if (isOpen) {
@@ -40,9 +65,11 @@ function MovieModal({
       ? `https://www.vidking.net/embed/tv/${movie.id}/1/1?nextEpisode=true&episodeSelector=true`
       : `https://www.vidking.net/embed/movie/${movie.id}`;
 
-  const cardLayoutId = layoutId ? `card-${layoutId}` : undefined;
-  const imageLayoutId = layoutId ? `img-${layoutId}` : undefined;
-  const titleLayoutId = layoutId ? `title-${layoutId}` : undefined;
+  const initial = flipInitial || { opacity: 0, scale: 0.92, y: 40 };
+  const animate = { scale: 1, x: 0, y: 0, opacity: 1, borderRadius: "0.5rem" };
+  const exit = flipInitial
+    ? { scale: flipInitial.scale * 0.8, opacity: 0, y: flipInitial.y }
+    : { opacity: 0, scale: 0.95, y: 20 };
 
   return (
     <div className="fixed inset-0 z-[100] flex items-start justify-center">
@@ -58,11 +85,10 @@ function MovieModal({
 
       {/* Modal */}
       <Motion.div
-        layoutId={cardLayoutId}
-        initial={!layoutId ? { opacity: 0, scale: 0.92, y: 40 } : undefined}
-        animate={!layoutId ? { opacity: 1, scale: 1, y: 0 } : undefined}
-        exit={!layoutId ? { opacity: 0, scale: 0.95, y: 20 } : undefined}
-        transition={{ type: "spring", stiffness: 320, damping: 34 }}
+        initial={initial}
+        animate={animate}
+        exit={exit}
+        transition={springTransition}
         className="relative w-full max-w-3xl mx-4 mt-8 mb-8 max-h-[90vh] overflow-y-auto rounded-lg bg-netflix-dark shadow-2xl scrollbar-hide"
       >
         {/* Close button */}
@@ -76,8 +102,7 @@ function MovieModal({
 
         {/* Hero image */}
         <div className="relative aspect-video w-full overflow-hidden">
-          <Motion.img
-            layoutId={imageLayoutId}
+          <img
             src={details?.backdrop || movie.image}
             alt={movie.title}
             className="w-full h-full object-cover"
@@ -87,12 +112,9 @@ function MovieModal({
           {/* Actions over hero */}
           <div className="absolute bottom-6 left-6 right-6 flex items-end justify-between">
             <div className="space-y-3">
-              <Motion.h2
-                layoutId={titleLayoutId}
-                className="text-2xl md:text-4xl font-black text-white text-shadow-lg"
-              >
+              <h2 className="text-2xl md:text-4xl font-black text-white text-shadow-lg">
                 {movie.title}
-              </Motion.h2>
+              </h2>
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => window.open(watchUrl, "_blank")}

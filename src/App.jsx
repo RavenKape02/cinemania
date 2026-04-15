@@ -6,7 +6,7 @@ import {
   useMemo,
 } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AnimatePresence, LayoutGroup } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import Navbar from "./components/Navbar/Navbar.jsx";
@@ -25,9 +25,10 @@ function App() {
   });
   const [modalMovie, setModalMovie] = useState(null);
   const [modalDetails, setModalDetails] = useState(null);
-  const [modalLayoutId, setModalLayoutId] = useState(null);
+  const [modalSourceRect, setModalSourceRect] = useState(null);
   const modalKeyRef = useRef(0);
   const searchTimeoutRef = useRef(null);
+  const pendingClickRef = useRef(0);
 
   const favoritesSet = useMemo(
     () => new Set(favorites.map((f) => f.id)),
@@ -66,34 +67,33 @@ function App() {
     }, 300);
   }, []);
 
-  const pendingClickRef = useRef(0);
+  const openModal = useCallback((movie, details, rect) => {
+    modalKeyRef.current += 1;
+    setModalDetails(details);
+    setModalSourceRect(rect || null);
+    setModalMovie(movie);
+  }, []);
 
-  const handleMovieClick = useCallback((movie, layoutId) => {
+  const handleMovieClick = useCallback((movie, rect) => {
     const clickId = ++pendingClickRef.current;
     const mediaType = movie.mediaType || "movie";
     const cached = getCachedDetails(movie.id, mediaType);
 
     if (cached) {
-      modalKeyRef.current += 1;
-      setModalDetails(cached);
-      setModalMovie(movie);
-      setModalLayoutId(layoutId || null);
+      openModal(movie, cached, rect);
       return;
     }
 
     fetchMovieDetails(movie.id, mediaType).then((data) => {
       if (pendingClickRef.current !== clickId) return;
-      modalKeyRef.current += 1;
-      setModalDetails(data);
-      setModalMovie(movie);
-      setModalLayoutId(layoutId || null);
+      openModal(movie, data, rect);
     });
-  }, []);
+  }, [openModal]);
 
   const handleCloseModal = useCallback(() => {
     setModalMovie(null);
     setModalDetails(null);
-    setModalLayoutId(null);
+    setModalSourceRect(null);
   }, []);
 
   useEffect(() => {
@@ -106,56 +106,54 @@ function App() {
 
   return (
     <BrowserRouter>
-      <LayoutGroup>
-        <div className="min-h-screen bg-netflix-black">
-          <Navbar onSearch={handleSearch} searchText={searchText} />
+      <div className="min-h-screen bg-netflix-black">
+        <Navbar onSearch={handleSearch} searchText={searchText} />
 
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <Home
-                  favorites={favorites}
-                  favoritesSet={favoritesSet}
-                  onToggleFavorite={toggleFavorite}
-                  onMovieClick={handleMovieClick}
-                  searchText={searchText}
-                  searchResults={searchResults}
-                  isSearching={isSearching}
-                />
-              }
-            />
-            <Route
-              path="/favorites"
-              element={
-                <Favorites
-                  favorites={favorites}
-                  toggleFavorite={toggleFavorite}
-                  onMovieClick={handleMovieClick}
-                />
-              }
-            />
-          </Routes>
-
-          <AnimatePresence initial={false}>
-            {modalMovie && (
-              <MovieModal
-                key={`modal-${modalKeyRef.current}`}
-                movie={modalMovie}
-                prefetchedDetails={modalDetails}
-                isOpen={!!modalMovie}
-                onClose={handleCloseModal}
-                isFavorite={favoritesSet.has(modalMovie.id)}
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <Home
+                favorites={favorites}
+                favoritesSet={favoritesSet}
                 onToggleFavorite={toggleFavorite}
-                layoutId={modalLayoutId}
+                onMovieClick={handleMovieClick}
+                searchText={searchText}
+                searchResults={searchResults}
+                isSearching={isSearching}
               />
-            )}
-          </AnimatePresence>
+            }
+          />
+          <Route
+            path="/favorites"
+            element={
+              <Favorites
+                favorites={favorites}
+                toggleFavorite={toggleFavorite}
+                onMovieClick={handleMovieClick}
+              />
+            }
+          />
+        </Routes>
 
-          <Analytics />
-          <SpeedInsights />
-        </div>
-      </LayoutGroup>
+        <AnimatePresence>
+          {modalMovie && (
+            <MovieModal
+              key={`modal-${modalKeyRef.current}`}
+              movie={modalMovie}
+              details={modalDetails}
+              sourceRect={modalSourceRect}
+              isOpen={!!modalMovie}
+              onClose={handleCloseModal}
+              isFavorite={favoritesSet.has(modalMovie.id)}
+              onToggleFavorite={toggleFavorite}
+            />
+          )}
+        </AnimatePresence>
+
+        <Analytics />
+        <SpeedInsights />
+      </div>
     </BrowserRouter>
   );
 }

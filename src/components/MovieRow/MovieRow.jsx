@@ -1,15 +1,8 @@
 import { useRef, useState, useCallback, memo } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { motion as Motion } from "framer-motion";
 import MovieCard from "@/components/MovieCard/MovieCard";
 
-function MovieRow({
-  title,
-  movies,
-  favoritesSet,
-  onToggleFavorite,
-  onMovieClick,
-}) {
+function MovieRow({ title, movies, favoritesSet, onToggleFavorite, onMovieClick }) {
   const rowRef = useRef(null);
   const rafRef = useRef(null);
   const [showLeft, setShowLeft] = useState(false);
@@ -63,21 +56,14 @@ function MovieRow({
           onScroll={checkScrollButtons}
           className="flex gap-1.5 md:gap-2 overflow-x-auto scrollbar-hide px-4 md:px-12 py-4"
         >
-          {movies.map((movie, index) => (
-            <Motion.div
+          {movies.map((movie) => (
+            <MovieCard
               key={movie.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.35, delay: Math.min(index * 0.05, 1) }}
-            >
-              <MovieCard
-                movie={movie}
-                rowId={title}
-                isFavorite={favoritesSet ? favoritesSet.has(movie.id) : false}
-                onToggleFavorite={onToggleFavorite}
-                onClick={onMovieClick}
-              />
-            </Motion.div>
+              movie={movie}
+              isFavorite={favoritesSet ? favoritesSet.has(movie.id) : false}
+              onToggleFavorite={onToggleFavorite}
+              onClick={onMovieClick}
+            />
           ))}
         </div>
 
