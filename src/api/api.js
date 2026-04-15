@@ -107,7 +107,30 @@ export async function searchMovies(query) {
     .map((item) => mapMovie(item));
 }
 
+const DETAILS_CACHE_PREFIX = "wd:";
+
+export function getCachedDetails(id, mediaType = "movie") {
+  try {
+    const raw = sessionStorage.getItem(`${DETAILS_CACHE_PREFIX}${mediaType}-${id}`);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function cacheDetails(id, mediaType, details) {
+  try {
+    sessionStorage.setItem(
+      `${DETAILS_CACHE_PREFIX}${mediaType}-${id}`,
+      JSON.stringify(details),
+    );
+  } catch { /* quota exceeded — silently skip */ }
+}
+
 export async function fetchMovieDetails(id, mediaType = "movie") {
+  const cached = getCachedDetails(id, mediaType);
+  if (cached) return cached;
+
   const data = await fetchFromAPI(
     `${BASE_URL}/${mediaType}/${id}?append_to_response=credits,similar,videos&language=en-US`,
   );
@@ -147,6 +170,9 @@ export async function fetchMovieDetails(id, mediaType = "movie") {
     trailerKey: trailer?.key || null,
     tagline: data.tagline || "",
   };
+
+  cacheDetails(id, mediaType, result);
+  return result;
 }
 
 export const GENRE_MAP = {

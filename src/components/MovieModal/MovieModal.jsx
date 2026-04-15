@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { X, Play, Heart, Star } from "lucide-react";
 import { motion as Motion } from "framer-motion";
 
@@ -11,19 +11,7 @@ function MovieModal({
   onToggleFavorite,
   layoutId,
 }) {
-  const details = prefetchedDetails || null;
-  // Track when the morph animation finishes so we can:
-  // 1. Show details only after morph (consistent small → large transition)
-  // 2. If no layoutId (no morph), show details immediately
-  const [morphDone, setMorphDone] = useState(!layoutId);
-  const visibleDetails = morphDone ? details : null;
-
-  // Reliable morph gate: match the spring animation duration
-  useEffect(() => {
-    if (!layoutId) return;
-    const timer = setTimeout(() => setMorphDone(true), 450);
-    return () => clearTimeout(timer);
-  }, [layoutId]);
+  const details = prefetchedDetails;
 
   useEffect(() => {
     if (isOpen) {
@@ -46,7 +34,7 @@ function MovieModal({
 
   if (!isOpen || !movie) return null;
 
-  const info = visibleDetails || movie;
+  const info = details || movie;
   const watchUrl =
     movie.mediaType === "tv"
       ? `https://www.vidking.net/embed/tv/${movie.id}/1/1?nextEpisode=true&episodeSelector=true`
@@ -88,24 +76,12 @@ function MovieModal({
 
         {/* Hero image */}
         <div className="relative aspect-video w-full overflow-hidden">
-          {/* Stable poster for morph – never changes src */}
           <Motion.img
             layoutId={imageLayoutId}
-            src={movie.image}
+            src={details?.backdrop || movie.image}
             alt={movie.title}
             className="w-full h-full object-cover"
           />
-          {/* High-res backdrop fades in once details load */}
-          {visibleDetails?.backdrop && (
-            <Motion.img
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.4 }}
-              src={details.backdrop}
-              alt={movie.title}
-              className="absolute inset-0 w-full h-full object-cover"
-            />
-          )}
           <div className="absolute inset-0 bg-gradient-to-t from-netflix-dark via-transparent to-transparent" />
 
           {/* Actions over hero */}
@@ -147,122 +123,109 @@ function MovieModal({
 
         {/* Info section */}
         <div className="px-6 md:px-8 py-6 space-y-6">
-          {!visibleDetails ? (
-            <div className="space-y-3 animate-pulse">
-              <div className="h-4 bg-white/10 rounded w-1/3" />
-              <div className="h-4 bg-white/10 rounded w-full" />
-              <div className="h-4 bg-white/10 rounded w-2/3" />
-            </div>
-          ) : (
-            <>
-              {/* Meta row */}
-              <div className="flex flex-wrap items-center gap-3 text-sm">
-                {info.voteAverage > 0 && (
-                  <span className="text-green-400 font-bold">
-                    {Math.round(info.voteAverage * 10)}% Match
-                  </span>
-                )}
-                {info.year && (
-                  <span className="text-netflix-light-gray">{info.year}</span>
-                )}
-                {details?.runtime && (
-                  <span className="text-netflix-light-gray">
-                    {Math.floor(details.runtime / 60)}h {details.runtime % 60}m
-                  </span>
-                )}
-                {details?.numberOfSeasons && (
-                  <span className="text-netflix-light-gray">
-                    {details.numberOfSeasons} Season
-                    {details.numberOfSeasons !== 1 ? "s" : ""}
-                  </span>
-                )}
-                {info.voteAverage > 0 && (
-                  <span className="flex items-center gap-1 text-yellow-400">
-                    <Star size={14} fill="currentColor" />
-                    {info.voteAverage.toFixed(1)}
-                  </span>
-                )}
-              </div>
+          {/* Meta row */}
+          <div className="flex flex-wrap items-center gap-3 text-sm">
+            {info.voteAverage > 0 && (
+              <span className="text-green-400 font-bold">
+                {Math.round(info.voteAverage * 10)}% Match
+              </span>
+            )}
+            {info.year && (
+              <span className="text-netflix-light-gray">{info.year}</span>
+            )}
+            {details?.runtime && (
+              <span className="text-netflix-light-gray">
+                {Math.floor(details.runtime / 60)}h {details.runtime % 60}m
+              </span>
+            )}
+            {details?.numberOfSeasons && (
+              <span className="text-netflix-light-gray">
+                {details.numberOfSeasons} Season
+                {details.numberOfSeasons !== 1 ? "s" : ""}
+              </span>
+            )}
+            {info.voteAverage > 0 && (
+              <span className="flex items-center gap-1 text-yellow-400">
+                <Star size={14} fill="currentColor" />
+                {info.voteAverage.toFixed(1)}
+              </span>
+            )}
+          </div>
 
-              {/* Two column layout */}
-              <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-6">
-                <div className="space-y-4">
-                  {details?.tagline && (
-                    <p className="text-white/60 italic text-sm">
-                      "{details.tagline}"
-                    </p>
-                  )}
-                  <p className="text-sm md:text-base text-white/90 leading-relaxed">
-                    {info.overview}
-                  </p>
-                </div>
-
-                <div className="space-y-3 text-sm">
-                  {details?.cast?.length > 0 && (
-                    <p>
-                      <span className="text-netflix-gray">Cast: </span>
-                      <span className="text-white/80">
-                        {details.cast.slice(0, 5).join(", ")}
-                      </span>
-                    </p>
-                  )}
-                  {details?.genres?.length > 0 && (
-                    <p>
-                      <span className="text-netflix-gray">Genres: </span>
-                      <span className="text-white/80">
-                        {details.genres.join(", ")}
-                      </span>
-                    </p>
-                  )}
-                  {details?.director && (
-                    <p>
-                      <span className="text-netflix-gray">Director: </span>
-                      <span className="text-white/80">{details.director}</span>
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* Similar titles */}
-              {details?.similar?.length > 0 && (
-                <div className="pt-4">
-                  <h3 className="text-lg font-bold text-white mb-4">
-                    More Like This
-                  </h3>
-                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-                    {details.similar
-                      .filter((s) => s.image)
-                      .slice(0, 8)
-                      .map((s) => (
-                        <div
-                          key={s.id}
-                          className="rounded overflow-hidden bg-netflix-black cursor-pointer hover:ring-1 hover:ring-white/30 transition-all"
-                          onClick={() => {
-                            /* could open another modal */
-                          }}
-                        >
-                          <img
-                            src={s.image}
-                            alt={s.title}
-                            className="w-full aspect-[2/3] object-cover"
-                            loading="lazy"
-                          />
-                          <div className="p-2">
-                            <p className="text-xs text-white/80 truncate">
-                              {s.title}
-                            </p>
-                            {s.voteAverage > 0 && (
-                              <p className="text-[10px] text-green-400 mt-0.5">
-                                {Math.round(s.voteAverage * 10)}% Match
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                </div>
+          {/* Two column layout */}
+          <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-6">
+            <div className="space-y-4">
+              {details?.tagline && (
+                <p className="text-white/60 italic text-sm">
+                  &ldquo;{details.tagline}&rdquo;
+                </p>
               )}
-            </>
+              <p className="text-sm md:text-base text-white/90 leading-relaxed">
+                {info.overview}
+              </p>
+            </div>
+
+            <div className="space-y-3 text-sm">
+              {details?.cast?.length > 0 && (
+                <p>
+                  <span className="text-netflix-gray">Cast: </span>
+                  <span className="text-white/80">
+                    {details.cast.slice(0, 5).join(", ")}
+                  </span>
+                </p>
+              )}
+              {details?.genres?.length > 0 && (
+                <p>
+                  <span className="text-netflix-gray">Genres: </span>
+                  <span className="text-white/80">
+                    {details.genres.join(", ")}
+                  </span>
+                </p>
+              )}
+              {details?.director && (
+                <p>
+                  <span className="text-netflix-gray">Director: </span>
+                  <span className="text-white/80">{details.director}</span>
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Similar titles */}
+          {details?.similar?.length > 0 && (
+            <div className="pt-4">
+              <h3 className="text-lg font-bold text-white mb-4">
+                More Like This
+              </h3>
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                {details.similar
+                  .filter((s) => s.image)
+                  .slice(0, 8)
+                  .map((s) => (
+                    <div
+                      key={s.id}
+                      className="rounded overflow-hidden bg-netflix-black cursor-pointer hover:ring-1 hover:ring-white/30 transition-all"
+                    >
+                      <img
+                        src={s.image}
+                        alt={s.title}
+                        className="w-full aspect-[2/3] object-cover"
+                        loading="lazy"
+                      />
+                      <div className="p-2">
+                        <p className="text-xs text-white/80 truncate">
+                          {s.title}
+                        </p>
+                        {s.voteAverage > 0 && (
+                          <p className="text-[10px] text-green-400 mt-0.5">
+                            {Math.round(s.voteAverage * 10)}% Match
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
           )}
         </div>
       </Motion.div>

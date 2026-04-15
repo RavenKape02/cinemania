@@ -14,12 +14,9 @@ import { SpeedInsights } from "@vercel/speed-insights/react";
 import Navbar from "./components/Navbar/Navbar.jsx";
 import Home from "./views/Home/Home.jsx";
 import Favorites from "./views/Favorites/Favorites.jsx";
-import { searchMovies, fetchMovieDetails } from "./api/api.js";
+import { searchMovies, fetchMovieDetails, getCachedDetails } from "./api/api.js";
 
 const MovieModal = lazy(() => import("./components/MovieModal/MovieModal.jsx"));
-
-// In-memory details cache so repeat opens are instant
-const detailsCache = new Map();
 
 function App() {
   const [searchText, setSearchText] = useState("");
@@ -72,22 +69,28 @@ function App() {
     }, 300);
   }, []);
 
-  const handleMovieClick = useCallback((movie, layoutId) => {
-    const cacheKey = `${movie.mediaType || "movie"}-${movie.id}`;
-    const cached = detailsCache.get(cacheKey);
-    modalKeyRef.current += 1;
-    setModalDetails(cached || null);
-    setModalMovie(movie);
-    setModalLayoutId(layoutId || null);
+  const pendingClickRef = useRef(0);
 
-    if (!cached) {
-      fetchMovieDetails(movie.id, movie.mediaType).then((data) => {
-        if (data) {
-          detailsCache.set(cacheKey, data);
-          setModalDetails(data);
-        }
-      });
+  const handleMovieClick = useCallback((movie, layoutId) => {
+    const clickId = ++pendingClickRef.current;
+    const mediaType = movie.mediaType || "movie";
+    const cached = getCachedDetails(movie.id, mediaType);
+
+    if (cached) {
+      modalKeyRef.current += 1;
+      setModalDetails(cached);
+      setModalMovie(movie);
+      setModalLayoutId(layoutId || null);
+      return;
     }
+
+    fetchMovieDetails(movie.id, mediaType).then((data) => {
+      if (pendingClickRef.current !== clickId) return;
+      modalKeyRef.current += 1;
+      setModalDetails(data);
+      setModalMovie(movie);
+      setModalLayoutId(layoutId || null);
+    });
   }, []);
 
   const handleCloseModal = useCallback(() => {
