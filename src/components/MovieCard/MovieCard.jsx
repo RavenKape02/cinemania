@@ -11,7 +11,8 @@ import {
   MorphingDialogDescription,
   useMorphingDialog,
 } from "@/components/motion-primitives/morphing-dialog";
-import { GENRE_MAP, fetchMovieDetails, getWatchUrl } from "@/api/api";
+import { GENRE_MAP, fetchMovieDetails } from "@/api/api";
+import PlayerModal from "@/components/PlayerModal/PlayerModal";
 
 const SPRING = { type: "spring", stiffness: 260, damping: 28 };
 
@@ -32,8 +33,9 @@ function DialogOpener({ as: Tag = "div", className, children, ...rest }) {
 }
 
 function DialogDetails({ movie, isFavorite, onToggleFavorite }) {
-  const { isOpen } = useMorphingDialog();
+  const { isOpen, setIsOpen } = useMorphingDialog();
   const [details, setDetails] = useState(null);
+  const [showPlayer, setShowPlayer] = useState(false);
 
   useEffect(() => {
     if (!isOpen) {
@@ -50,13 +52,15 @@ function DialogDetails({ movie, isFavorite, onToggleFavorite }) {
   }, [isOpen, movie.id, movie.mediaType]);
 
   const info = details || movie;
-  const watchUrl = getWatchUrl(movie);
 
   return (
     <div className="px-6 md:px-8 py-6 space-y-6">
       <div className="flex items-center gap-3">
         <button
-          onClick={() => window.open(watchUrl, "_blank")}
+          onClick={() => {
+            setIsOpen(false);
+            setShowPlayer(true);
+          }}
           className="flex items-center gap-2 bg-white text-black font-bold px-6 py-2 rounded text-sm hover:bg-white/80 transition-colors"
         >
           <Play size={18} fill="black" />
@@ -189,19 +193,23 @@ function DialogDetails({ movie, isFavorite, onToggleFavorite }) {
           )}
         </>
       )}
+
+      {showPlayer && (
+        <PlayerModal movie={movie} onClose={() => setShowPlayer(false)} />
+      )}
     </div>
   );
 }
 
 function MovieCard({ movie, isFavorite, onToggleFavorite }) {
+  const [showPlayer, setShowPlayer] = useState(false);
+
   if (!movie || !movie.image) return null;
 
   const genreNames = (movie.genreIds || [])
     .slice(0, 2)
     .map((id) => GENRE_MAP[id])
     .filter(Boolean);
-
-  const watchUrl = getWatchUrl(movie);
 
   return (
     <MorphingDialog transition={SPRING}>
@@ -238,7 +246,7 @@ function MovieCard({ movie, isFavorite, onToggleFavorite }) {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    window.open(watchUrl, "_blank");
+                    setShowPlayer(true);
                   }}
                   className="w-8 h-8 rounded-full bg-white flex items-center justify-center hover:bg-white/80 transition-colors"
                   aria-label="Play"
@@ -335,6 +343,10 @@ function MovieCard({ movie, isFavorite, onToggleFavorite }) {
           </MorphingDialogDescription>
         </MorphingDialogContent>
       </MorphingDialogContainer>
+
+      {showPlayer && (
+        <PlayerModal movie={movie} onClose={() => setShowPlayer(false)} />
+      )}
     </MorphingDialog>
   );
 }
