@@ -11,7 +11,7 @@ import {
   MorphingDialogImage,
   useMorphingDialog,
 } from "@/components/motion-primitives/morphing-dialog";
-import { GENRE_MAP, fetchMovieDetails } from "@/api/api";
+import { GENRE_MAP, fetchMovieDetails, getWatchUrl } from "@/api/api";
 
 const SPRING = { type: "spring", stiffness: 260, damping: 28 };
 
@@ -34,10 +34,7 @@ function HeroDialogDetails({ movie }) {
   }, [isOpen, movie.id, movie.mediaType]);
 
   const info = details || movie;
-  const watchUrl =
-    movie.mediaType === "tv"
-      ? `https://www.vidking.net/embed/tv/${movie.id}/1/1?nextEpisode=true&episodeSelector=true`
-      : `https://www.vidking.net/embed/movie/${movie.id}`;
+  const watchUrl = getWatchUrl(movie);
 
   return (
     <div className="px-6 md:px-8 py-6 space-y-6">
@@ -131,10 +128,7 @@ function HeroBanner({ movie }) {
     .map((id) => GENRE_MAP[id])
     .filter(Boolean);
 
-  const watchUrl =
-    movie.mediaType === "tv"
-      ? `https://www.vidking.net/embed/tv/${movie.id}/1/1?nextEpisode=true&episodeSelector=true`
-      : `https://www.vidking.net/embed/movie/${movie.id}`;
+  const watchUrl = getWatchUrl(movie);
 
   return (
     <div className="relative w-full h-[85vh] md:h-[90vh] -mt-16 md:-mt-[68px]">
