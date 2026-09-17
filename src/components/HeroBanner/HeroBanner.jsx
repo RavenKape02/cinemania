@@ -11,15 +11,13 @@ import {
   MorphingDialogImage,
   useMorphingDialog,
 } from "@/components/motion-primitives/morphing-dialog";
-import { GENRE_MAP, fetchMovieDetails } from "@/api/api";
-import PlayerModal from "@/components/PlayerModal/PlayerModal";
+import { GENRE_MAP, fetchMovieDetails, getWatchUrl } from "@/api/api";
 
 const SPRING = { type: "spring", stiffness: 260, damping: 28 };
 
 function HeroDialogDetails({ movie }) {
-  const { isOpen, setIsOpen } = useMorphingDialog();
+  const { isOpen } = useMorphingDialog();
   const [details, setDetails] = useState(null);
-  const [showPlayer, setShowPlayer] = useState(false);
 
   useEffect(() => {
     if (!isOpen) {
@@ -36,15 +34,13 @@ function HeroDialogDetails({ movie }) {
   }, [isOpen, movie.id, movie.mediaType]);
 
   const info = details || movie;
+  const watchUrl = getWatchUrl(movie);
 
   return (
     <div className="px-6 md:px-8 py-6 space-y-6">
       <div className="flex items-center gap-3">
         <button
-          onClick={() => {
-            setIsOpen(false);
-            setShowPlayer(true);
-          }}
+          onClick={() => window.open(watchUrl, "_blank")}
           className="flex items-center gap-2 bg-white text-black font-bold px-6 py-2 rounded text-sm hover:bg-white/80 transition-colors"
         >
           <Play size={18} fill="black" />
@@ -120,23 +116,19 @@ function HeroDialogDetails({ movie }) {
           </div>
         </>
       )}
-
-      {showPlayer && (
-        <PlayerModal movie={movie} onClose={() => setShowPlayer(false)} />
-      )}
     </div>
   );
 }
 
 function HeroBanner({ movie }) {
-  const [showPlayer, setShowPlayer] = useState(false);
-
   if (!movie) return null;
 
   const genreNames = (movie.genreIds || [])
     .slice(0, 3)
     .map((id) => GENRE_MAP[id])
     .filter(Boolean);
+
+  const watchUrl = getWatchUrl(movie);
 
   return (
     <div className="relative w-full h-[85vh] md:h-[90vh] -mt-16 md:-mt-[68px]">
@@ -191,7 +183,7 @@ function HeroBanner({ movie }) {
 
           <div className="flex items-center gap-3 pt-2">
             <button
-              onClick={() => setShowPlayer(true)}
+              onClick={() => window.open(watchUrl, "_blank")}
               className="flex items-center gap-2 bg-white text-black font-bold px-6 py-2.5 md:px-8 md:py-3 rounded text-sm md:text-base hover:bg-white/80 transition-colors"
             >
               <Play size={20} fill="black" />
@@ -233,10 +225,6 @@ function HeroBanner({ movie }) {
           </div>
         </div>
       </div>
-
-      {showPlayer && (
-        <PlayerModal movie={movie} onClose={() => setShowPlayer(false)} />
-      )}
     </div>
   );
 }
