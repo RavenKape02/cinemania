@@ -1,11 +1,11 @@
 const BASE_URL = "https://api.themoviedb.org/3";
 const IMG_BASE = "https://image.tmdb.org/t/p";
-const STREAM_BASE = "https://www.2embed.cc";
+const STREAM_BASE = "https://vidsrc.to";
 
 export function getWatchUrl(movie) {
   return movie.mediaType === "tv"
-    ? `${STREAM_BASE}/embedtv/${movie.id}&s=1&e=1`
-    : `${STREAM_BASE}/embed/${movie.id}`;
+    ? `${STREAM_BASE}/embed/tv/${movie.id}/1/1`
+    : `${STREAM_BASE}/embed/movie/${movie.id}`;
 }
 
 async function fetchFromAPI(url) {
