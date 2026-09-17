@@ -11,7 +11,7 @@ import {
   MorphingDialogDescription,
   useMorphingDialog,
 } from "@/components/motion-primitives/morphing-dialog";
-import { GENRE_MAP, fetchMovieDetails } from "@/api/api";
+import { GENRE_MAP, fetchMovieDetails, getWatchUrl } from "@/api/api";
 
 const SPRING = { type: "spring", stiffness: 260, damping: 28 };
 
@@ -50,10 +50,7 @@ function DialogDetails({ movie, isFavorite, onToggleFavorite }) {
   }, [isOpen, movie.id, movie.mediaType]);
 
   const info = details || movie;
-  const watchUrl =
-    movie.mediaType === "tv"
-      ? `https://www.vidking.net/embed/tv/${movie.id}/1/1?nextEpisode=true&episodeSelector=true`
-      : `https://www.vidking.net/embed/movie/${movie.id}`;
+  const watchUrl = getWatchUrl(movie);
 
   return (
     <div className="px-6 md:px-8 py-6 space-y-6">
@@ -204,10 +201,7 @@ function MovieCard({ movie, isFavorite, onToggleFavorite }) {
     .map((id) => GENRE_MAP[id])
     .filter(Boolean);
 
-  const watchUrl =
-    movie.mediaType === "tv"
-      ? `https://www.vidking.net/embed/tv/${movie.id}/1/1?nextEpisode=true&episodeSelector=true`
-      : `https://www.vidking.net/embed/movie/${movie.id}`;
+  const watchUrl = getWatchUrl(movie);
 
   return (
     <MorphingDialog transition={SPRING}>
